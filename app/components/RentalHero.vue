@@ -1,3 +1,7 @@
+<script setup lang="ts">
+const { open: openCabinetSelect } = useCabinetSelectDialog();
+</script>
+
 <template>
   <section class="hero">
     <div class="page-container hero-content">
@@ -10,7 +14,7 @@
         <v-btn to="/listings" color="primary" class="action-btn" size="large">
           Перейти в каталог
         </v-btn>
-        <v-btn to="/cabinet/select" variant="outlined" class="action-btn" size="large">
+        <v-btn variant="outlined" class="action-btn" size="large" @click="void openCabinetSelect()">
           Выложить своё объявление
         </v-btn>
       </div>

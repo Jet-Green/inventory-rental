@@ -5,6 +5,7 @@ definePageMeta({
 });
 
 import { useAdminDashboard } from "~/composables/useAdminDashboard";
+import { mongoIdHead } from "~/utils/mongoId";
 
 const {
   dashboard,
@@ -64,7 +65,7 @@ const pendingModeration = computed(() =>
             :key="item._id"
             class="text-caption text-medium-emphasis mb-2"
           >
-            {{ item.title }} · {{ item.ownerId.slice(0, 8) }}…
+            {{ item.title }} · {{ mongoIdHead(item.ownerId) }}…
           </p>
           <p v-if="!pendingModeration.length" class="text-caption text-medium-emphasis">
             Нет очереди

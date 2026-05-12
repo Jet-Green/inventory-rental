@@ -6,6 +6,9 @@ export default defineNuxtRouteMiddleware(async () => {
   }
   const roles = auth.user?.roles || [];
   if (!roles.includes("renter") && !roles.includes("admin")) {
-    return navigateTo("/cabinet/select");
+    return navigateTo({
+      path: "/renter-cabinet/rentals",
+      query: { openCabinetSelect: "1" },
+    });
   }
 });

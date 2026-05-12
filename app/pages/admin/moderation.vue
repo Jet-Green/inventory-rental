@@ -5,6 +5,7 @@ definePageMeta({
 });
 
 import { useAdminDashboard } from "~/composables/useAdminDashboard";
+import { mongoIdTail } from "~/utils/mongoId";
 
 const { listings, isLoading, fetchAdminData, moderate } = useAdminDashboard();
 
@@ -77,7 +78,7 @@ const rows = computed(() => {
       >
         <span class="text-caption flex-grow-1" style="min-width: 120px">{{ item.title }}</span>
         <span class="text-caption text-medium-emphasis" style="min-width: 80px">
-          {{ item.ownerId?.slice(-6) || "—" }}
+          {{ mongoIdTail(item.ownerId) }}
         </span>
         <span class="text-caption text-medium-emphasis" style="min-width: 70px">
           {{ item.categories?.[0]?.name || "—" }}

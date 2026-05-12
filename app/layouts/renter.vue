@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const auth = useAuth();
 const route = useRoute();
+const { open: openCabinetSelect } = useCabinetSelectDialog();
 
 const nav = [
   { title: "Мои аренды", to: "/renter-cabinet/rentals" },
@@ -24,15 +25,16 @@ function isActive(path: string): boolean {
             gorodaivesi.ru
           </NuxtLink>
           <span class="text-primary font-weight-semibold text-caption">Личный кабинет</span>
-          <NuxtLink
-            to="/cabinet/select"
+          <a
+            href="#"
             class="text-caption px-3 py-2 rounded-lg cabinet-header__pill text-decoration-none"
+            @click.prevent="void openCabinetSelect()"
           >
             Сменить кабинет
-          </NuxtLink>
+          </a>
         </div>
         <div class="d-flex align-center ga-2 flex-wrap">
-          <v-btn to="/cabinet/select" variant="outlined" color="primary" class="gv-cta" rounded="lg">
+          <v-btn variant="outlined" color="primary" class="gv-cta" rounded="lg" @click="void openCabinetSelect()">
             Разместить объявление
           </v-btn>
           <v-btn to="/renter-cabinet/profile" color="primary" class="gv-cta" rounded="lg">

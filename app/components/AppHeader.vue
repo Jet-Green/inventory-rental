@@ -18,6 +18,7 @@ const variant = computed<HeaderVariant>(() => {
 });
 
 const isOpen = ref(false);
+const { open: openCabinetSelectDialog } = useCabinetSelectDialog();
 
 function closeDrawer(): void {
   isOpen.value = false;
@@ -26,6 +27,11 @@ function closeDrawer(): void {
 function go(to: string): void {
   closeDrawer();
   navigateTo(to);
+}
+
+function openPlaceListing(): void {
+  closeDrawer();
+  void openCabinetSelectDialog();
 }
 </script>
 
@@ -53,21 +59,21 @@ function go(to: string): void {
         <div v-if="variant !== 'minimal'" class="gv-header__actions d-none d-md-flex">
           <v-btn
             v-if="variant === 'marketing'"
-            to="/cabinet/select"
             variant="outlined"
             color="primary"
             class="gv-cta"
             rounded="lg"
+            @click="openPlaceListing"
           >
             Разместить объявление
           </v-btn>
           <v-btn
             v-if="variant === 'compact'"
-            to="/cabinet/select"
             variant="outlined"
             color="primary"
             class="gv-cta"
             rounded="lg"
+            @click="openPlaceListing"
           >
             Разместить объявление
           </v-btn>
@@ -119,7 +125,7 @@ function go(to: string): void {
         <div class="text-subtitle-1 font-weight-bold mb-3">Меню</div>
         <v-list density="comfortable">
           <v-list-item title="Каталог" @click="go('/listings')" />
-          <v-list-item title="Разместить объявление" @click="go('/cabinet/select')" />
+          <v-list-item title="Разместить объявление" @click="openPlaceListing" />
           <v-divider class="my-2" />
           <v-list-item
             v-if="user"

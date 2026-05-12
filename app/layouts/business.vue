@@ -2,6 +2,7 @@
 const auth = useAuth();
 const route = useRoute();
 const { isBusiness } = useRole();
+const { open: openCabinetSelect } = useCabinetSelectDialog();
 
 const nav = [
   { title: "Обзор", to: "/business-cabinet" },
@@ -31,12 +32,13 @@ function isActive(path: string): boolean {
             gorodaivesi.ru
           </NuxtLink>
           <span class="text-primary font-weight-semibold text-caption">Кабинет бизнеса</span>
-          <NuxtLink
-            to="/cabinet/select"
+          <a
+            href="#"
             class="text-caption px-3 py-2 rounded-lg cabinet-header__pill text-decoration-none"
+            @click.prevent="void openCabinetSelect()"
           >
             Сменить кабинет
-          </NuxtLink>
+          </a>
         </div>
         <div class="d-flex align-center ga-2 flex-wrap">
           <v-btn to="/business-cabinet/listings/new" color="primary" class="gv-cta" rounded="lg">

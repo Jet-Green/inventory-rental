@@ -30,7 +30,7 @@ export default defineNuxtRouteMiddleware(async () => {
   }
 
   return navigateTo({
-    path: "/cabinet/select",
-    query: { businessAccessDenied: "1" },
+    path: "/renter-cabinet/rentals",
+    query: { openCabinetSelect: "1", businessAccessDenied: "1" },
   });
 });
