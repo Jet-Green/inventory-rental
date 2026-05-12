@@ -1,3 +1,6 @@
+import OrganizationApi, {
+  type ISubmitOrganizationVerificationPayload,
+} from "~/api/OrganizationApi";
 import UserApi, { type IUpdateProfilePayload } from "~/api/UserApi";
 import type { IUserProfile } from "~/types/rental";
 
@@ -21,9 +24,12 @@ export function useAuthProfile() {
     auth.setUser(response.user);
   }
 
-  async function requestBusinessVerification(): Promise<void> {
-    const response = await UserApi.requestBusinessVerification();
-    auth.setUser(response.user);
+  /** Создаёт запись в коллекции organizations и ставит заявку на модерацию. */
+  async function submitOrganizationVerification(
+    payload: ISubmitOrganizationVerificationPayload,
+  ): Promise<void> {
+    await OrganizationApi.submitVerification(payload);
+    await fetchProfile();
   }
 
   async function verifyRenter(): Promise<void> {
@@ -36,7 +42,7 @@ export function useAuthProfile() {
     isLoading,
     fetchProfile,
     updateProfile,
-    requestBusinessVerification,
+    submitOrganizationVerification,
     verifyRenter,
   };
 }

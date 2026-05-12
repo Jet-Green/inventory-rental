@@ -1,11 +1,6 @@
 export type LegalStatus = "person" | "ip" | "ooo";
-/** Роль бизнеса в ответе API — строка `lessor` (контракт с бэкендом). */
-export type UserRole = "renter" | "lessor" | "admin";
-export type LessorVerificationStatus =
-  | "not_requested"
-  | "pending"
-  | "approved"
-  | "rejected";
+/** Роль кабинета бизнеса в API — `business` (в старых данных могло быть `lessor`). */
+export type UserRole = "renter" | "business" | "admin" | "lessor";
 
 export interface ICategory {
   _id: string;
@@ -82,22 +77,34 @@ export interface IBookingItem {
   agencyAgreementPdfUrl: string;
 }
 
+/** Организация (верификация бизнеса); в админке приходит с populate orgManagers. */
+export interface IOrganizationManagerSnippet {
+  _id: string;
+  email: string;
+  fullName: string;
+  phone?: string;
+}
+
+export interface IOrganization {
+  _id: string;
+  legalStatus: LegalStatus;
+  inn?: string;
+  ogrnOrOgrnip?: string;
+  companyName?: string;
+  payoutPhone?: string;
+  moderationStatus: "pending" | "approved" | "rejected";
+  moderatorComment?: string;
+  orgManagers?: IOrganizationManagerSnippet[] | string[];
+}
+
+/** Профиль пользователя (реквизиты организации — в коллекции organizations). */
 export interface IUserProfile {
   _id: string;
   fullName: string;
   email: string;
   phone: string;
-  status: LegalStatus;
-  companyName?: string;
-  inn?: string;
-  ogrnOrOgrnip?: string;
-  sbpPhone?: string;
-  payoutPhone?: string;
   address?: string;
   passport?: string;
-  isLessorVerified: boolean;
-  lessorVerificationStatus: LessorVerificationStatus;
-  lessorVerificationComment?: string;
   isRenterVerified: boolean;
   roles: UserRole[];
 }

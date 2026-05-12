@@ -1,5 +1,13 @@
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 
+/** База для `$apiFetch`: обязан заканчиваться на `/api` (глобальный префикс Nest). */
+function normalizePublicApiBase(raw: string | undefined): string {
+  const fallback = "http://localhost:4000/api";
+  const trimmed = (raw?.trim() || fallback).replace(/\/+$/, "");
+  if (trimmed.endsWith("/api")) return trimmed;
+  return `${trimmed}/api`;
+}
+
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
@@ -38,7 +46,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || "http://localhost:4000/api",
+      apiBase: normalizePublicApiBase(process.env.NUXT_PUBLIC_API_BASE),
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || "http://localhost:3068",
     },
   },

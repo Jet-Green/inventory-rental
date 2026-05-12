@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const auth = useAuth();
 const route = useRoute();
+const { isBusiness } = useRole();
 
 const nav = [
   { title: "Обзор", to: "/business-cabinet" },
@@ -49,7 +50,7 @@ function isActive(path: string): boolean {
       </div>
     </header>
 
-    <div class="gv-page-wide px-4 px-sm-6 py-4">
+    <div v-if="!isBusiness" class="gv-page-wide px-4 px-sm-6 py-4">
       <div class="business-banner d-flex flex-wrap align-center justify-space-between ga-3 pa-4 rounded-lg">
         <span class="text-body-2 font-weight-semibold">Для публикации объявлений пройдите верификацию</span>
         <v-btn to="/business-cabinet/verification" color="primary" class="gv-cta" rounded="lg">

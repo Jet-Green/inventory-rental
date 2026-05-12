@@ -9,6 +9,13 @@ import { useRole } from "~/composables/useRole";
 
 const route = useRoute();
 const router = useRouter();
+const auth = useAuth();
+const { fetchMine } = useMyOrganization();
+
+if (auth.user?._id) {
+  await fetchMine();
+}
+
 const { isBusiness, isRenter, isAdmin } = useRole();
 
 watch(

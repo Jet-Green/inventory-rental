@@ -2,10 +2,13 @@
 import CategoryApi from "~/api/CategoryApi";
 import RentalApi from "~/api/RentalApi";
 import { useAuthProfile } from "~/composables/useAuthProfile";
+import { useRole } from "~/composables/useRole";
 import type { ICategory } from "~/types/rental";
 
 const router = useRouter();
-const { profile, fetchProfile } = useAuthProfile();
+const { fetchProfile } = useAuthProfile();
+const { fetchMine } = useMyOrganization();
+const { isBusiness } = useRole();
 const categories = ref<ICategory[]>([]);
 const isSubmitting = ref(false);
 const errorMessage = ref("");
@@ -36,15 +39,16 @@ const steps = [
 
 onMounted(async () => {
   await fetchProfile();
+  await fetchMine();
   const response = await CategoryApi.getVisible();
   categories.value = response.categories;
 });
 
 async function submit(): Promise<void> {
   errorMessage.value = "";
-  if (!profile.value?.isLessorVerified) {
+  if (!isBusiness.value) {
     errorMessage.value =
-      "Перед публикацией объявления пройдите верификацию бизнеса.";
+      "Перед публикацией объявления дождитесь подтверждения организации.";
     return;
   }
 

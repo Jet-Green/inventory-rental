@@ -9,11 +9,11 @@ import { useAdminDashboard } from "~/composables/useAdminDashboard";
 const {
   dashboard,
   listings,
-  businessVerificationRequests,
+  organizationVerificationRequests,
   isLoading,
   fetchAdminData,
-  approveBusinessVerification,
-  rejectBusinessVerification,
+  approveOrganizationVerification,
+  rejectOrganizationVerification,
 } = useAdminDashboard();
 
 onMounted(() => {
@@ -75,13 +75,13 @@ const pendingModeration = computed(() =>
         <div class="gv-card-elevated pa-4">
           <p class="text-body-2 font-weight-semibold mb-3">Новые пользователи</p>
           <p
-            v-for="user in businessVerificationRequests.slice(0, 3)"
-            :key="user._id"
+            v-for="org in organizationVerificationRequests.slice(0, 3)"
+            :key="org._id"
             class="text-caption text-medium-emphasis mb-2"
           >
-            + Заявка · {{ user.email }}
+            + Организация · {{ org.companyName || org.inn }}
           </p>
-          <p v-if="!businessVerificationRequests.length" class="text-caption text-medium-emphasis">
+          <p v-if="!organizationVerificationRequests.length" class="text-caption text-medium-emphasis">
             Нет новых
           </p>
         </div>
@@ -96,28 +96,34 @@ const pendingModeration = computed(() =>
     </v-row>
 
     <v-card class="pa-4 mt-8 rounded-lg" variant="outlined">
-      <h3 class="text-h6 mb-3">Верификация бизнеса</h3>
+      <h3 class="text-h6 mb-3">Верификация организаций</h3>
       <v-table>
         <thead>
           <tr>
-            <th>Пользователь</th>
-            <th>Email</th>
+            <th>Организация</th>
+            <th>ИНН</th>
+            <th>Менеджер</th>
             <th>Статус</th>
             <th>Действия</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="user in businessVerificationRequests" :key="user._id">
-            <td>{{ user.fullName }}</td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.lessorVerificationStatus }}</td>
+          <tr v-for="org in organizationVerificationRequests" :key="org._id">
+            <td>{{ org.companyName || "—" }}</td>
+            <td>{{ org.inn || "—" }}</td>
+            <td>
+              {{
+                org.orgManagers?.map((m) => m.email).join(", ") || "—"
+              }}
+            </td>
+            <td>{{ org.moderationStatus }}</td>
             <td>
               <div class="d-flex ga-2 flex-wrap">
                 <v-btn
                   size="small"
                   variant="outlined"
                   color="success"
-                  @click="approveBusinessVerification(user._id)"
+                  @click="approveOrganizationVerification(org._id)"
                 >
                   Подтвердить
                 </v-btn>
@@ -125,7 +131,7 @@ const pendingModeration = computed(() =>
                   size="small"
                   variant="outlined"
                   color="error"
-                  @click="rejectBusinessVerification(user._id, 'Требуются уточнения')"
+                  @click="rejectOrganizationVerification(org._id, 'Требуются уточнения')"
                 >
                   Отклонить
                 </v-btn>

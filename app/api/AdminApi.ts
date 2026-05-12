@@ -1,4 +1,4 @@
-import type { IRentalListing, IUserProfile } from "~/types/rental";
+import type { IOrganization, IRentalListing } from "~/types/rental";
 
 export default {
   async dashboard(): Promise<{
@@ -32,30 +32,32 @@ export default {
     });
   },
 
-  /** Список заявок на верификацию бизнеса (путь API: lessor-verification-requests). */
-  async businessVerificationRequests(): Promise<{ users: IUserProfile[] }> {
-    return useNuxtApp().$apiFetch("/admin/lessor-verification-requests", {
+  /** Заявки на верификацию организаций (коллекция organizations). */
+  async organizationVerificationRequests(): Promise<{
+    organizations: IOrganization[];
+  }> {
+    return useNuxtApp().$apiFetch("/admin/organization-verification-requests", {
       method: "GET",
     });
   },
 
-  async approveBusinessVerification(
-    userId: string,
+  async approveOrganizationVerification(
+    organizationId: string,
     comment = "",
-  ): Promise<{ user: IUserProfile }> {
-    return useNuxtApp().$apiFetch("/admin/lessor-verification/approve", {
+  ): Promise<{ organization: unknown }> {
+    return useNuxtApp().$apiFetch("/admin/organization-verification/approve", {
       method: "POST",
-      body: { userId, comment },
+      body: { organizationId, comment },
     });
   },
 
-  async rejectBusinessVerification(
-    userId: string,
+  async rejectOrganizationVerification(
+    organizationId: string,
     comment = "",
-  ): Promise<{ user: IUserProfile }> {
-    return useNuxtApp().$apiFetch("/admin/lessor-verification/reject", {
+  ): Promise<{ organization: unknown }> {
+    return useNuxtApp().$apiFetch("/admin/organization-verification/reject", {
       method: "POST",
-      body: { userId, comment },
+      body: { organizationId, comment },
     });
   },
 };

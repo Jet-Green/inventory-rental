@@ -1,5 +1,5 @@
 import AdminApi from "~/api/AdminApi";
-import type { IRentalListing, IUserProfile } from "~/types/rental";
+import type { IOrganization, IRentalListing } from "~/types/rental";
 
 export function useAdminDashboard() {
   const dashboard = useState("admin-dashboard", () => ({
@@ -8,8 +8,8 @@ export function useAdminDashboard() {
     listingsStats: {} as Record<string, number>,
   }));
   const listings = useState<IRentalListing[]>("admin-listings", () => []);
-  const businessVerificationRequests = useState<IUserProfile[]>(
-    "admin-business-verification-requests",
+  const organizationVerificationRequests = useState<IOrganization[]>(
+    "admin-organization-verification-requests",
     () => [],
   );
   const isLoading = useState<boolean>("admin-loading", () => false);
@@ -20,11 +20,12 @@ export function useAdminDashboard() {
       const [dashboardData, listingsData, requestsData] = await Promise.all([
         AdminApi.dashboard(),
         AdminApi.listings(),
-        AdminApi.businessVerificationRequests(),
+        AdminApi.organizationVerificationRequests(),
       ]);
       dashboard.value = dashboardData;
       listings.value = listingsData.data || [];
-      businessVerificationRequests.value = requestsData.users || [];
+      organizationVerificationRequests.value =
+        requestsData.organizations || [];
     } finally {
       isLoading.value = false;
     }
@@ -38,30 +39,30 @@ export function useAdminDashboard() {
     await fetchAdminData();
   }
 
-  async function approveBusinessVerification(
-    userId: string,
+  async function approveOrganizationVerification(
+    organizationId: string,
     comment = "",
   ): Promise<void> {
-    await AdminApi.approveBusinessVerification(userId, comment);
+    await AdminApi.approveOrganizationVerification(organizationId, comment);
     await fetchAdminData();
   }
 
-  async function rejectBusinessVerification(
-    userId: string,
+  async function rejectOrganizationVerification(
+    organizationId: string,
     comment = "",
   ): Promise<void> {
-    await AdminApi.rejectBusinessVerification(userId, comment);
+    await AdminApi.rejectOrganizationVerification(organizationId, comment);
     await fetchAdminData();
   }
 
   return {
     dashboard,
     listings,
-    businessVerificationRequests,
+    organizationVerificationRequests,
     isLoading,
     fetchAdminData,
     moderate,
-    approveBusinessVerification,
-    rejectBusinessVerification,
+    approveOrganizationVerification,
+    rejectOrganizationVerification,
   };
 }

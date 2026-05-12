@@ -6,10 +6,12 @@ definePageMeta({
 });
 
 import { useAuthProfile } from "~/composables/useAuthProfile";
+import { useMyOrganization } from "~/composables/useMyOrganization";
 
 const route = useRoute();
 const router = useRouter();
-const { profile, fetchProfile, requestBusinessVerification, updateProfile } = useAuthProfile();
+const { profile, fetchProfile, submitOrganizationVerification } = useAuthProfile();
+const { organization, fetchMine } = useMyOrganization();
 
 const entity = ref<"person" | "ip" | "ooo">("ip");
 
@@ -38,24 +40,28 @@ watch(
 
 onMounted(async () => {
   await fetchProfile();
-  if (profile.value?.status) {
-    entity.value = profile.value.status;
+  await fetchMine();
+  const org = organization.value;
+  if (org?.legalStatus) {
+    entity.value = org.legalStatus;
   }
-  form.inn = profile.value?.inn || "";
-  form.ogrnOrOgrnip = profile.value?.ogrnOrOgrnip || "";
-  form.companyName = profile.value?.companyName || profile.value?.fullName || "";
-  form.payoutDetails = profile.value?.payoutPhone || "";
+  if (org) {
+    form.inn = org.inn || "";
+    form.ogrnOrOgrnip = org.ogrnOrOgrnip || "";
+    form.companyName = org.companyName || profile.value?.fullName || "";
+    form.payoutDetails = org.payoutPhone || "";
+  }
 });
 
 async function submit(): Promise<void> {
-  await updateProfile({
-    status: entity.value,
+  await submitOrganizationVerification({
+    legalStatus: entity.value,
     inn: form.inn,
     ogrnOrOgrnip: form.ogrnOrOgrnip,
     companyName: form.companyName,
     payoutPhone: form.payoutDetails,
   });
-  await requestBusinessVerification();
+  await fetchMine();
 }
 </script>
 
