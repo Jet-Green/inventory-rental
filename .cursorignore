@@ -1,0 +1,28 @@
+# Secrets
+.env
+.env.local
+.env.production
+.env.development
+*.pem
+*.key
+*.cert
+
+# Dependencies
+node_modules/
+
+# Build output
+.nuxt/
+.output/
+dist/
+build/
+coverage/
+
+# Logs
+*.log
+logs/
+
+# System
+.DS_Store
+
+# Package manager noise
+.pnpm-store/

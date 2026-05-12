@@ -1,0 +1,122 @@
+:root {
+  --gv-primary: #ff6600;
+  --gv-primary-soft-bg: #fff7f0;
+  --gv-primary-soft-border: #ffd1b3;
+  --gv-text: rgba(0, 0, 0, 0.9);
+  --gv-text-secondary: rgba(0, 0, 0, 0.55);
+  --gv-text-muted: rgba(0, 0, 0, 0.45);
+  --gv-border: #d9d9d9;
+  --gv-border-light: #f0f0f0;
+  --gv-card-bg: #fcfcfc;
+  --gv-sidebar: #fafafa;
+  --gv-link: rgba(61, 175, 245, 0.95);
+  --gv-available: #bcc662;
+  --gv-radius-btn: 15px;
+  --gv-radius-card: 16px;
+  --gv-radius-chip: 15px;
+  --gv-shadow-card: 0 8px 28px rgba(0, 0, 0, 0.06);
+  --gv-font-display: "Nunito", "Montserrat", system-ui, sans-serif;
+  --gv-font-body: "Montserrat", system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--gv-font-body);
+  background: #ffffff;
+  color: var(--gv-text);
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--gv-font-display);
+  font-weight: 900;
+}
+
+.gv-display {
+  font-family: var(--gv-font-display);
+  font-weight: 900;
+}
+
+.gv-page-wide {
+  width: min(1280px, calc(100vw - 32px));
+  margin: 0 auto;
+}
+
+.page-container {
+  width: min(1280px, calc(100vw - 32px));
+  margin: 0 auto;
+}
+
+.section-title {
+  font-size: clamp(1.25rem, 0.9rem + 1.2vw, 2rem);
+  font-family: var(--gv-font-display);
+  font-weight: 900;
+}
+
+.text-muted {
+  color: var(--gv-text-secondary);
+}
+
+.card-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+.action-btn {
+  border-radius: var(--gv-radius-btn) !important;
+}
+
+.gv-cta {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.02em !important;
+  border-radius: var(--gv-radius-btn) !important;
+}
+
+.gv-card-elevated {
+  background: var(--gv-card-bg);
+  border: 1px solid var(--gv-border-light);
+  border-radius: var(--gv-radius-card);
+  box-shadow: var(--gv-shadow-card);
+}
+
+.gv-chip-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: var(--gv-radius-chip);
+  background: var(--gv-primary-soft-bg);
+  border: 1px solid var(--gv-primary-soft-border);
+  color: var(--gv-primary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.gv-chip-tag--active {
+  border-color: var(--gv-primary);
+  border-width: 2px;
+}
+
+.gv-link {
+  color: var(--gv-link);
+  text-decoration: none;
+}
+
+.gv-link:hover {
+  text-decoration: underline;
+}
+
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.12s ease;
+}
+
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}

@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "name": "frontend",
+      "path": ".",
+    },
+    {
+      "name": "backend",
+      "path": "../inventory-rental-backend",
+    },
+  ],
+  "settings": {},
+}

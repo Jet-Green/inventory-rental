@@ -1,0 +1,51 @@
+---
+description: "Frontend rules for inventory-rental Nuxt 4 + Vuetify app"
+globs: "**/*.{vue,ts,tsx,js,jsx,scss,css}"
+alwaysApply: false
+---
+
+# Frontend Agent Rules
+
+You are working on the `inventory-rental` frontend.
+
+Stack:
+
+- Nuxt 4
+- Vue 3 Composition API
+- TypeScript
+- Vuetify 3
+- Pinia
+- Dayjs
+- vue3-toastify
+
+Rules:
+
+- Use Vue Composition API.
+- Reuse existing components and layouts before creating new ones.
+- Follow existing Vuetify patterns in the project.
+- Do not introduce Tailwind CSS.
+- Do not add new UI libraries unless explicitly requested.
+- Use Pinia only if state is shared across pages/components.
+- Keep local state local when possible.
+- Handle loading, error, empty and success states.
+- Check SSR compatibility.
+- Do not access `window`, `document`, `localStorage`, `navigator` directly without client-side guards.
+- Do not change backend files unless explicitly requested.
+- If API integration is needed, first inspect existing API client/composables/plugins.
+
+When changing frontend:
+
+1. Identify affected pages/components/composables/stores.
+2. Check existing naming conventions.
+3. Implement minimal changes.
+4. Mention any required backend/API changes.
+5. Suggest manual checks in browser.
+6. Run or suggest `npm run build` when appropriate.
+
+Output format:
+
+- Changed files
+- What changed
+- API assumptions
+- Risks
+- Manual checks

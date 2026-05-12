@@ -1,0 +1,38 @@
+---
+description: "Rules for changes that touch both frontend and backend"
+alwaysApply: true
+---
+
+# Cross-repo API Contract Rules
+
+When a task touches both frontend and backend:
+
+1. First describe the API contract:
+   - endpoint
+   - method
+   - request body/query params
+   - response shape
+   - auth requirements
+   - error responses
+
+2. Then implement backend changes.
+
+3. Then implement frontend integration.
+
+4. Do not silently change:
+   - endpoint paths
+   - response field names
+   - auth behavior
+   - cookie/token behavior
+   - validation rules
+
+5. If backend changes are required but not implemented yet, frontend must clearly mark the assumption.
+
+6. If frontend expects a field that backend does not return, stop and explain the mismatch.
+
+Preferred flow:
+
+- Backend contract
+- Backend implementation
+- Frontend integration
+- Manual test scenario

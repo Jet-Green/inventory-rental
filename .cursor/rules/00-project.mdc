@@ -1,0 +1,57 @@
+---
+description: "Global rules for inventory-rental frontend and backend workspace"
+alwaysApply: true
+---
+
+# Project: inventory-rental
+
+This workspace contains two related repositories:
+
+- `frontend`: Nuxt 4 application in `inventory-rental`
+- `backend`: NestJS 11 API in `../inventory-rental-backend`
+
+Frontend stack:
+
+- Nuxt 4
+- Vue 3
+- Vuetify 3
+- Pinia
+- Dayjs
+- vue3-toastify
+- TypeScript
+
+Backend stack:
+
+- NestJS 11
+- MongoDB with Mongoose
+- class-validator
+- class-transformer
+- JWT
+- cookie-parser
+- bcryptjs
+- throttler
+
+General rules:
+
+- Do not edit secrets or `.env` files.
+- Do not add dependencies without explaining why.
+- Do not change API contracts without explicitly mentioning the change.
+- Do not make destructive database changes.
+- Prefer small, reviewable diffs.
+- First inspect existing code patterns before implementing.
+- After changes, summarize modified files and risks.
+- If frontend and backend both need changes, describe the API contract first.
+- Do not invent test/lint commands that are not present in package.json.
+
+Known frontend commands:
+
+- `npm run dev`
+- `npm run build`
+- `npm run generate`
+- `npm run preview`
+
+Known backend commands:
+
+- `npm run dev`
+- `npm run build`
+- `npm run lint`
