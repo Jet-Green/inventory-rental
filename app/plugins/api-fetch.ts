@@ -1,4 +1,5 @@
 import { toast } from "vue3-toastify";
+import { isAuthApiUrl, isProtectedRoutePath } from "~/utils/auth-routes";
 
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig();
@@ -21,20 +22,21 @@ export default defineNuxtPlugin(() => {
       }
     },
     onResponseError({ response }) {
-      const message = response?._data?.message;
-      if (import.meta.client && message) {
-        toast(String(message), { type: "error" });
+      const status = response?.status;
+      const url = response.url || "";
+      const isAuthCall = isAuthApiUrl(url);
+
+      // Гость на главной: refresh даёт 401 «Нужна авторизация» — не показываем toast.
+      if (import.meta.client && status !== 401) {
+        const message = response?._data?.message;
+        if (message) {
+          toast(String(message), { type: "error" });
+        }
       }
 
-      if (import.meta.client && response?.status === 401) {
+      if (import.meta.client && status === 401 && !isAuthCall) {
         const route = useRoute();
-        const url = response.url || "";
-        const isAuthCall =
-          url.includes("/auth/login") ||
-          url.includes("/auth/registration") ||
-          url.includes("/auth/refresh") ||
-          url.includes("/auth/logout");
-        if (!isAuthCall && route.path !== "/auth") {
+        if (route.path !== "/auth" && isProtectedRoutePath(route.path)) {
           navigateTo("/auth");
         }
       }

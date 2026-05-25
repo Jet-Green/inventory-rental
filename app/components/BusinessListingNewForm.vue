@@ -4,6 +4,12 @@ import RentalApi from "~/api/RentalApi";
 import { useAuthProfile } from "~/composables/useAuthProfile";
 import { useRole } from "~/composables/useRole";
 import type { ICategory } from "~/types/rental";
+import {
+  createDefaultWeekSchedule,
+  formatAvailabilityRange,
+  scheduleToCalendarRanges,
+  type IWeekdayAvailability,
+} from "~/utils/listingAvailability";
 
 const router = useRouter();
 const { fetchProfile } = useAuthProfile();
@@ -25,15 +31,16 @@ const form = reactive({
   pickupType: "pickup" as "pickup" | "delivery" | "both",
   pickupAddress: "",
   deliveryZone: "",
-  calendarText: "",
 });
+
+const availabilitySchedule = ref<IWeekdayAvailability[]>(createDefaultWeekSchedule());
 
 const steps = [
   { n: 1, label: "Инфо" },
   { n: 2, label: "Фото" },
   { n: 3, label: "Цена" },
   { n: 4, label: "Получение" },
-  { n: 5, label: "Календарь" },
+  { n: 5, label: "Доступность" },
   { n: 6, label: "Просмотр" },
 ];
 
@@ -54,15 +61,11 @@ async function submit(): Promise<void> {
 
   try {
     isSubmitting.value = true;
-    const calendar = form.calendarText
-      .split("\n")
-      .map((row) => row.trim())
-      .filter(Boolean)
-      .map((row) => {
-        const [from, to] = row.split(",");
-        return { from: (from || "").trim(), to: (to || "").trim() };
-      })
-      .filter((x) => x.from && x.to);
+    const calendar = scheduleToCalendarRanges(availabilitySchedule.value);
+    if (!calendar.length) {
+      errorMessage.value = "Укажите хотя бы один день доступности на шаге «Доступность».";
+      return;
+    }
 
     await RentalApi.create({
       title: form.title,
@@ -90,6 +93,12 @@ function nextStep(): void {
 function prevStep(): void {
   step.value = Math.max(1, step.value - 1);
 }
+
+const availabilityPreview = computed(() =>
+  scheduleToCalendarRanges(availabilitySchedule.value).map((r) =>
+    formatAvailabilityRange(r.from, r.to),
+  ),
+);
 </script>
 
 <template>
@@ -114,9 +123,11 @@ function prevStep(): void {
       {{
         step === 1
           ? "Основная информация"
-          : step === 6
-            ? "Проверьте данные и отправьте"
-            : "Заполните поля"
+          : step === 5
+            ? "График доступности по дням недели"
+            : step === 6
+              ? "Проверьте данные и отправьте"
+              : "Заполните поля"
       }}
     </p>
 
@@ -226,14 +237,8 @@ function prevStep(): void {
       />
     </div>
 
-    <div v-show="step === 5" class="max-w-screen-md">
-      <v-textarea
-        v-model="form.calendarText"
-        label="Календарь (каждая строка: YYYY-MM-DD,YYYY-MM-DD)"
-        hint="Пример: 2026-05-01,2026-05-07"
-        variant="outlined"
-        rounded="lg"
-      />
+    <div v-show="step === 5" class="max-w-screen-lg">
+      <ListingAvailabilityPicker v-model="availabilitySchedule" />
     </div>
 
     <div v-show="step === 6" class="max-w-screen-md">
@@ -241,6 +246,13 @@ function prevStep(): void {
         <p><strong>{{ form.title || "—" }}</strong></p>
         <p class="text-medium-emphasis">{{ form.description || "—" }}</p>
         <p>Цена: {{ form.pricePerDay }} ₽/день, мин. {{ form.minDays }} дн.</p>
+        <p v-if="availabilityPreview.length" class="mt-3 mb-1 font-weight-semibold">
+          Доступность:
+        </p>
+        <ul v-if="availabilityPreview.length" class="ps-4 mb-0">
+          <li v-for="(line, i) in availabilityPreview" :key="i">{{ line }}</li>
+        </ul>
+        <p v-else class="text-medium-emphasis mt-2">Дни доступности не выбраны</p>
       </div>
     </div>
 

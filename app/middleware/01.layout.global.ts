@@ -1,7 +1,8 @@
 export default defineNuxtRouteMiddleware((to) => {
   if (
     to.path.startsWith("/renter-cabinet") ||
-    to.path.startsWith("/business-cabinet")
+    to.path.startsWith("/business-cabinet") ||
+    to.path.startsWith("/admin")
   ) {
     return;
   }

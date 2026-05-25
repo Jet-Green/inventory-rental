@@ -31,6 +31,17 @@ export function useAdminDashboard() {
     }
   }
 
+  async function fetchOrganizationVerificationRequests(): Promise<void> {
+    try {
+      isLoading.value = true;
+      const requestsData = await AdminApi.organizationVerificationRequests();
+      organizationVerificationRequests.value =
+        requestsData.organizations || [];
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   async function moderate(
     listingId: string,
     status: "active" | "pending" | "rejected" | "hidden",
@@ -61,6 +72,7 @@ export function useAdminDashboard() {
     organizationVerificationRequests,
     isLoading,
     fetchAdminData,
+    fetchOrganizationVerificationRequests,
     moderate,
     approveOrganizationVerification,
     rejectOrganizationVerification,

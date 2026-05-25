@@ -7,4 +7,5 @@ export default defineNuxtRouteMiddleware(async () => {
   if (!auth.user?.roles?.includes("admin")) {
     return navigateTo("/cabinet");
   }
+  setPageLayout("admin");
 });

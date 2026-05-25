@@ -1,23 +1,14 @@
 <script setup lang="ts">
-import dayjs from "dayjs";
 import { useRentalItem } from "~/composables/useRentalItem";
 import { useRole } from "~/composables/useRole";
-import { listingToDraft, useBookingDraft } from "~/composables/useBookingDraft";
 
 const route = useRoute();
 const id = String(route.params.id || "");
 
 const { currentListing, fetchListingById, isLoading } = useRentalItem();
 const { isRenter, isAdmin, isAuth } = useRole();
-const draft = useBookingDraft();
 
 const selectedPhoto = ref(0);
-
-const form = reactive({
-  dateFrom: "",
-  dateTo: "",
-  units: 1,
-});
 
 onMounted(() => {
   void fetchListingById(id);
@@ -53,59 +44,25 @@ const pickupLabel = computed(() => {
 const categoriesLine = computed(() => {
   const l = currentListing.value;
   if (!l?.categories?.length) return "";
-  return `${l.categories.map((c) => c.name).join(" · ")} · ID ${l._id.slice(-5)}`;
+  return `${l.categories.map((c) => c).join(" · ")}`;
 });
-
-const bookingDays = computed(() => {
-  if (!form.dateFrom || !form.dateTo) return 0;
-  const a = dayjs(form.dateFrom);
-  const b = dayjs(form.dateTo);
-  const d = b.diff(a, "day");
-  return d > 0 ? d : 0;
-});
-
-const totalPrice = computed(() => {
-  const l = currentListing.value;
-  if (!l || !bookingDays.value) return 0;
-  return bookingDays.value * l.pricePerDay * form.units;
-});
-
-const selectionSummary = computed(() => {
-  if (!form.dateFrom || !form.dateTo || !bookingDays.value) {
-    return "Выберите даты в календаре ниже или полями бронирования";
-  }
-  const a = dayjs(form.dateFrom).format("DD.MM");
-  const b = dayjs(form.dateTo).format("DD.MM");
-  return `Выбрано: ${a} — ${b} · ${bookingDays.value} дн.`;
-});
-
-const canContinue = computed(
-  () =>
-    !!form.dateFrom &&
-    !!form.dateTo &&
-    bookingDays.value > 0 &&
-    form.units >= 1 &&
-    !!currentListing.value,
-);
 
 const bookingHint = computed(() => {
   if (!isAuth.value) return "Для бронирования войдите в аккаунт.";
   if (!isRenter.value && !isAdmin.value) {
     return "Бронирование доступно для подтверждённого пользователя.";
   }
-  if (!canContinue.value) return "Укажите корректный период аренды.";
   return "";
 });
 
-function continueCheckout(): void {
-  if (!currentListing.value || !canContinue.value) return;
+function startBooking(): void {
+  if (!currentListing.value) return;
   if (!isAuth.value) {
     navigateTo("/auth");
     return;
   }
   if (!isRenter.value && !isAdmin.value) return;
-  draft.value = listingToDraft(currentListing.value, { ...form }, pickupLabel.value);
-  navigateTo("/booking/checkout");
+  navigateTo(`/booking/${currentListing.value._id}`);
 }
 
 useSeoMeta({
@@ -159,8 +116,8 @@ useSeoMeta({
             </p>
             <div class="d-flex flex-column ga-2">
               <span class="text-primary font-weight-semibold">
-                Цена: {{ new Intl.NumberFormat("ru-RU").format(currentListing.pricePerDay) }} ₽ /
-                день
+                Цена:
+                {{ new Intl.NumberFormat("ru-RU").format(currentListing.pricePerDay) }} ₽ / день
               </span>
               <span class="text-body-2" style="color: rgba(0,0,0,0.65)">
                 Мин. срок: {{ currentListing.minDays }} дн.
@@ -178,87 +135,32 @@ useSeoMeta({
         </v-col>
 
         <v-col cols="12" lg="4">
-          <div class="gv-card-elevated pa-6 booking-panel">
-            <h2 class="text-h6 font-weight-semibold mb-1">Бронирование</h2>
-            <p class="text-caption mb-4" style="color: rgba(0,0,0,0.55)">
-              Календарь доступности
+          <div class="gv-card-elevated pa-6 listing-page__cta">
+            <h2 class="text-h6 font-weight-semibold mb-2">Бронирование</h2>
+            <p class="text-body-2 text-medium-emphasis mb-4">
+              Оформление в несколько шагов: период, проверка, контакты и оплата.
             </p>
-
-            <div class="booking-panel__calendar rounded-lg pa-3 mb-4 border">
-              <p class="text-caption font-weight-semibold mb-2">
-                {{ dayjs().format("MMMM YYYY") }}
-              </p>
-              <p class="text-caption text-medium-emphasis mb-2">
-                Пн &nbsp; Вт &nbsp; Ср &nbsp; Чт &nbsp; Пт &nbsp; Сб &nbsp; Вс
-              </p>
-              <p class="text-caption text-medium-emphasis">
-                Уточняйте занятость по сетке ниже и выберите даты.
-              </p>
-            </div>
-
-            <p class="text-caption mb-4" style="color: rgba(0,0,0,0.65)">
-              {{ selectionSummary }}
+            <p class="text-primary font-weight-semibold text-h6 mb-4">
+              от
+              {{ new Intl.NumberFormat("ru-RU").format(currentListing.pricePerDay) }} ₽ / день
             </p>
-
-            <div class="d-flex align-center ga-3 mb-4 flex-wrap">
-              <span class="text-caption" style="color: rgba(0,0,0,0.6)">Количество</span>
-              <v-text-field
-                v-model.number="form.units"
-                type="number"
-                min="1"
-                :max="currentListing.unitsAvailable"
-                density="compact"
-                variant="outlined"
-                hide-details
-                style="max-width: 120px"
-                rounded="lg"
-              />
-            </div>
-
-            <v-text-field
-              v-model="form.dateFrom"
-              label="Дата начала"
-              type="date"
-              variant="outlined"
-              density="comfortable"
-              class="mb-3"
-              rounded="lg"
-              hide-details
-            />
-            <v-text-field
-              v-model="form.dateTo"
-              label="Дата окончания"
-              type="date"
-              variant="outlined"
-              density="comfortable"
-              class="mb-4"
-              rounded="lg"
-              hide-details
-            />
-
-            <div class="booking-panel__total rounded-lg pa-4 mb-4">
-              <p class="text-caption mb-1" style="color: rgba(0,0,0,0.5)">Итого к оплате</p>
-              <p class="text-h4 gv-display text-primary">
-                {{ new Intl.NumberFormat("ru-RU").format(totalPrice) }} ₽
-              </p>
-            </div>
-
             <v-btn
               block
               color="primary"
               class="gv-cta"
               rounded="lg"
               size="large"
-              :disabled="!canContinue || (!isRenter && !isAdmin && isAuth)"
-              @click="continueCheckout"
+              :disabled="!!bookingHint && isAuth"
+              @click="startBooking"
             >
               Забронировать
             </v-btn>
             <p
+              v-if="bookingHint"
               class="text-caption mt-3"
-              :class="bookingHint && !canContinue ? 'text-error' : 'text-medium-emphasis'"
+              :class="bookingHint ? 'text-error' : 'text-medium-emphasis'"
             >
-              {{ bookingHint || "Далее — контакты и оплата." }}
+              {{ bookingHint }}
             </p>
           </div>
         </v-col>
@@ -290,17 +192,8 @@ useSeoMeta({
   border: 2px solid var(--gv-primary);
 }
 
-.booking-panel {
+.listing-page__cta {
   position: sticky;
   top: 16px;
-}
-
-.booking-panel__calendar {
-  border-color: var(--gv-border) !important;
-}
-
-.booking-panel__total {
-  background: var(--gv-primary-soft-bg);
-  border: 1px solid var(--gv-primary-soft-border);
 }
 </style>

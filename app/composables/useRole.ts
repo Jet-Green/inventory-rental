@@ -7,7 +7,7 @@ export const useRole = () => {
   const roles = computed<UserRole[]>(() => auth.user?.roles || []);
   const isRenter = computed(() => roles.value.includes("renter"));
   /**
-   * Доступ к функциям бизнеса: одобренная организация (не roles `business`/`lessor`).
+   * Доступ к функциям бизнеса: одобренная организация (не поле roles).
    * Админ обходится отдельно — у него может не быть записи organization.
    */
   const isBusiness = computed(

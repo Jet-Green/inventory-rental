@@ -31,8 +31,7 @@ const sectionTitle = computed(() => {
         <span class="gv-display font-weight-black">gorodaivesi · Админка</span>
         <span class="text-primary font-weight-semibold text-caption">{{ sectionTitle }}</span>
         <v-spacer />
-        <v-btn variant="text" size="small" to="/cabinet">Кабинет</v-btn>
-        <v-btn variant="text" size="small" to="/listings">Каталог</v-btn>
+        <v-btn variant="text" size="small" to="/">На сайт</v-btn>
         <v-btn variant="text" size="small" @click="auth.logout">Выйти</v-btn>
       </div>
     </header>

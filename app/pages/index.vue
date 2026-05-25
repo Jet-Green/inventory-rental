@@ -46,9 +46,31 @@ const quickTags = computed(() => {
 });
 
 const activeQuickKey = ref<string | null>(null);
+const filtersDialogOpen = ref(false);
+
+const activeFiltersCount = computed(() => {
+  const f = filters.value;
+  let n = 0;
+  if (f.dateFrom || f.dateTo) n += 1;
+  if (f.pickupType) n += 1;
+  if (f.sortBy) n += 1;
+  if (f.categories?.length) n += 1;
+  return n;
+});
 
 async function applySearch(): Promise<void> {
   await fetchCatalog({ ...filters.value, search: searchLocal.value || undefined }, 1);
+}
+
+async function applyFiltersFromDialog(): Promise<void> {
+  filtersDialogOpen.value = false;
+  await applySearch();
+}
+
+async function clearFiltersInDialog(): Promise<void> {
+  const search = filters.value.search;
+  filters.value = search ? { search } : {};
+  activeQuickKey.value = null;
 }
 
 async function toggleQuickCategory(key: string): Promise<void> {
@@ -95,15 +117,68 @@ useSeoMeta({
           rounded="lg"
           @keyup.enter="applySearch"
         />
-        <v-btn
-          color="primary"
-          class="gv-cta align-self-stretch"
-          height="48"
-          @click="applySearch"
-        >
-          Найти
-        </v-btn>
+        <div class="d-flex gap-3 flex-shrink-0">
+          <v-btn
+            color="primary"
+            class="gv-cta"
+            height="48"
+            min-width="100"
+            @click="applySearch"
+          >
+            Найти
+          </v-btn>
+          <v-badge
+            :content="activeFiltersCount"
+            :model-value="activeFiltersCount > 0"
+            color="primary"
+          >
+            <v-btn
+              variant="outlined"
+              color="primary"
+              class="gv-cta"
+              height="48"
+              min-width="120"
+              @click="filtersDialogOpen = true"
+            >
+              Фильтры
+            </v-btn>
+          </v-badge>
+        </div>
       </div>
+
+      <v-dialog v-model="filtersDialogOpen" max-width="720" scrollable>
+        <v-card rounded="xl" class="pa-1">
+          <v-card-title class="text-h6 font-weight-semibold pa-4 pb-2">
+            Фильтры
+          </v-card-title>
+          <v-card-text class="pa-4 pt-2">
+            <RentalFilterBar
+              v-model="filters"
+              :categories="categories"
+              :loading="isLoading"
+              :show-apply-button="false"
+            />
+          </v-card-text>
+          <v-card-actions class="pa-4 pt-0 flex-wrap ga-2">
+            <v-btn variant="text" rounded="lg" @click="clearFiltersInDialog">
+              Сбросить
+            </v-btn>
+            <v-spacer />
+            <v-btn variant="text" rounded="lg" @click="filtersDialogOpen = false">
+              Отмена
+            </v-btn>
+            <v-btn
+              color="primary"
+              class="gv-cta"
+              rounded="lg"
+              :loading="isLoading"
+              @click="applyFiltersFromDialog"
+            >
+              Применить
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
 
       <div v-if="quickTags.length" class="d-flex flex-wrap gap-2 mb-8">
         <button
@@ -116,18 +191,6 @@ useSeoMeta({
         >
           {{ tag.label }}
         </button>
-      </div>
-
-      <div class="mb-8">
-        <p class="text-body-2 font-weight-semibold mb-3" style="color: rgba(0,0,0,0.75)">
-          Фильтры
-        </p>
-        <RentalFilterBar
-          v-model="filters"
-          :categories="categories"
-          :loading="isLoading"
-          @apply="fetchCatalog(filters, 1)"
-        />
       </div>
 
       <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />

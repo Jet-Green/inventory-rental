@@ -2,7 +2,7 @@ import OrganizationApi, {
   type ISubmitOrganizationVerificationPayload,
 } from "~/api/OrganizationApi";
 import UserApi, { type IUpdateProfilePayload } from "~/api/UserApi";
-import type { IUserProfile } from "~/types/rental";
+import type { IOrganization, IUserProfile } from "~/types/rental";
 
 export function useAuthProfile() {
   const auth = useAuth();
@@ -24,12 +24,18 @@ export function useAuthProfile() {
     auth.setUser(response.user);
   }
 
-  /** Создаёт запись в коллекции organizations и ставит заявку на модерацию. */
+  /** Создаёт/обновляет organizations и ставит заявку на модерацию. */
   async function submitOrganizationVerification(
     payload: ISubmitOrganizationVerificationPayload,
-  ): Promise<void> {
-    await OrganizationApi.submitVerification(payload);
-    await fetchProfile();
+  ): Promise<IOrganization> {
+    const { organization } = await OrganizationApi.submitVerification(payload);
+    const { organization: orgState, fetchMine } = useMyOrganization();
+    if (organization) {
+      orgState.value = organization;
+    } else {
+      await fetchMine();
+    }
+    return orgState.value as IOrganization;
   }
 
   async function verifyRenter(): Promise<void> {

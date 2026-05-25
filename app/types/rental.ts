@@ -1,6 +1,5 @@
 export type LegalStatus = "person" | "ip" | "ooo";
-/** Роль кабинета бизнеса в API — `business` (в старых данных могло быть `lessor`). */
-export type UserRole = "renter" | "business" | "admin" | "lessor";
+export type UserRole = "renter" | "business" | "admin";
 
 export interface ICategory {
   _id: string;
@@ -42,6 +41,7 @@ export interface ICatalogFilters {
   pickupType?: "pickup" | "delivery" | "both";
   unitsNeeded?: number;
   search?: string;
+  sortBy?: "priceAsc" | "priceDesc";
 }
 
 export interface IPaginatedResponse<T> {
@@ -75,6 +75,14 @@ export interface IBookingItem {
   status: "pending" | "confirmed" | "cancelled";
   rentalAgreementPdfUrl: string;
   agencyAgreementPdfUrl: string;
+}
+
+export interface IBookedRange {
+  bookingId: string;
+  dateFrom: string;
+  dateTo: string;
+  units: number;
+  status: "pending" | "confirmed";
 }
 
 /** Организация (верификация бизнеса); в админке приходит с populate orgManagers. */

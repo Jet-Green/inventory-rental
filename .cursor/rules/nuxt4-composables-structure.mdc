@@ -1,0 +1,142 @@
+---
+description: "Nuxt 4: api → composable → types, cookie-auth (nuxt4-composables-structure)"
+globs: "app/**/*.{ts,vue}"
+alwaysApply: false
+---
+
+# Фронтенд: слои и cookie-авторизация
+
+Стек: Nuxt 4, Vue 3 Composition API, Vuetify 3. Эталон того же подхода — соседний проект `../nmp` (`app/api`, `app/composables`, `app/types`, Pinia `useAuth`).
+
+## Схема слоёв
+
+```
+pages / components  →  composables (стейт + логика)  →  app/api/* (HTTP)  →  backend
+                              ↓
+                        app/types/*
+```
+
+| Слой | Папка | Ответственность |
+|------|--------|----------------|
+| HTTP | `app/api/*.ts` | Только запросы через `$apiFetch`. Без `useState`, без UI. |
+| Стейт/логика | `app/composables/*.ts` | `useState`, loading, вызовы `*Api`, обновление стейта. |
+| Типы | `app/types/*.ts` | Интерфейсы, union-типы, DTO для API. |
+| Сессия | `app/stores/auth.ts` | Исключение: глобальный пользователь, `checkAuth`, login/logout. |
+
+Поддомены: `app/api/AdminApi.ts`, `app/composables/admin/`, `app/composables/brand-admin/` (как в nmp).
+
+## Плагины и HTTP-клиент
+
+Все запросы к бэкенду — **только** через `$apiFetch` из `app/plugins/api-fetch.ts`. Не создавать второй `$fetch.create` в composable/page. Не использовать голый `useFetch`/`$fetch` к API без этого клиента.
+
+### `app/plugins/api-fetch.ts`
+
+Регистрирует глобальный клиент:
+
+```ts
+const apiFetch = $fetch.create({
+  baseURL: config.public.apiBase,  // из runtimeConfig, см. ниже
+  credentials: "include",          // httpOnly cookie (JWT)
+  retry: 1,
+  onRequest({ options }) { /* SSR: проброс cookie */ },
+  onResponseError({ response }) { /* toast + 401 → /auth */ },
+});
+return { provide: { apiFetch } };
+```
+
+| Хук / опция | Назначение |
+|-------------|------------|
+| `baseURL` | `runtimeConfig.public.apiBase` — база с суффиксом `/api` (Nest global prefix). |
+| `credentials: "include"` | Отправка и приём auth-cookie; без этого login/refresh не работают. |
+| `onRequest` (SSR) | `useRequestHeaders(["cookie"])` → `options.headers.cookie` — иначе на сервере сессии нет, middleware редиректит на `/auth`, на клиенте сессия есть → hydration mismatch. |
+| `onResponseError` | Общий toast по `response._data.message` (только `import.meta.client`). |
+| `onResponseError` 401 | Редирект на `/auth`, **кроме** `/auth/login`, `/auth/registration`, `/auth/refresh`, `/auth/logout` и если уже на `/auth`. |
+
+Глобальные заголовки, таймаут, retry, логирование — добавлять **сюда**, не в каждый `*Api`.
+
+### `runtimeConfig` (`nuxt.config.ts`)
+
+- `public.apiBase` ← `NUXT_PUBLIC_API_BASE`, нормализация через `normalizePublicApiBase` (обязательно заканчивается на `/api`).
+- В `app/api/*` пути **относительные** к `apiBase`: `"/auth/login"`, `"/user/my-organization"` — не дублировать `/api` в пути.
+
+### Порядок плагинов
+
+- `api-fetch.ts` — HTTP-клиент (имя файла загружается до `auth.ts`).
+- `app/plugins/auth.ts` — при старте приложения `await useAuth().checkAuth()` через `AuthApi.refresh()` → тот же `$apiFetch`.
+- UI-плагины (`toastify.client.ts`, `vuetify.ts`) не трогают API.
+
+Новый side-effect при старте (например, locale header) — отдельный плагин **после** `api-fetch` или хук в `onRequest` в `api-fetch.ts`.
+
+### Вызов из `app/api`
+
+```ts
+// ✅ app/api/OrganizationApi.ts
+const { $apiFetch } = useNuxtApp();
+return $apiFetch<{ organization: IOrganization | null }>("/user/my-organization", {
+  method: "GET",
+});
+```
+
+```ts
+// ❌ в page/component/composable (кроме store auth, если уже заведено)
+await $fetch("http://localhost:4000/api/user/me");
+await useNuxtApp().$apiFetch("/user/me");
+```
+
+Ошибки домена (409, валидация) — обрабатывать в composable (`try/catch`), если нужно своё сообщение; базовый toast уже в плагине.
+
+### Эталон `../nmp`
+
+Тот же паттерн: `app/plugins/api.ts` → `provide.apiFetch`, `credentials: "include"`, 401 в `onResponseError`. Отличие inventory-rental: явный проброс cookie на SSR в `onRequest`.
+
+## Composable
+
+- Именование: `useXxx`, экспорт `function useXxx()`.
+- Стейт: `useState<T>("unique-key", () => initial)` для данных между страницами/SSR.
+- Методы: `fetch*`, `create*`, `update*` — внутри вызывают `XxxApi`, пишут в `useState`, выставляют `isLoading`.
+- Не импортировать Api в `.vue` — только composable (или store для auth).
+
+```ts
+// ✅ app/composables/useMyOrganization.ts
+const organization = useState<IOrganization | null>("my-organization", () => null);
+async function fetchMine() {
+  const { organization: org } = await OrganizationApi.mine();
+  organization.value = org;
+}
+```
+
+## Auth (cookie)
+
+- `app/api/AuthApi.ts` — login, registration, refresh, logout, me.
+- `useAuth()` (Pinia) — `user`, `checkAuth()` (дедуп через `checkAuthPromise`), `login`/`logout`.
+- `app/plugins/auth.ts` — при старте `await useAuth().checkAuth()`.
+- `app/middleware/auth.ts`, `admin.ts`, `business.ts`, `renter.ts` — guard + `checkAuth` при пустом `user`.
+- Бизнес-доступ: **организация** (`useMyOrganization`, `moderationStatus === "approved"`), не `user.roles.business`.
+
+## Types
+
+- Общие доменные типы: `app/types/rental.ts` (или разбить по файлам при росте).
+- Типы только для одного Api — рядом в `app/api/*.ts` как `export interface ISubmit...`.
+- Mongo id в UI: `mongoIdToString` / `mongoIdTail` из `app/utils/mongoId.ts`, не `.slice` на `ownerId`.
+
+## Pages
+
+- `definePageMeta({ middleware: ["auth", "business"] })` — по необходимости.
+- В `setup`: composable + `onMounted(() => void fetchX())` или `await fetchX()` при SSR-данных.
+- UI: loading / empty / error; `import.meta.client` для `window`/`toast`.
+
+## UI-утилиты без API
+
+- `app/utils/*` — чистые функции.
+- `app/constants/*` — константы.
+- Глобальный UI: `app/components/CabinetSelectDialog.vue` + `useCabinetSelectDialog`.
+
+## Чеклист при новой фиче
+
+1. Типы в `app/types`.
+2. Методы в `app/api/NewFeatureApi.ts`.
+3. `useNewFeature()` с `useState` и fetch-методами.
+4. Страница/компонент использует только composable.
+5. При смене контракта бэкенда — сначала описать endpoint, потом Api, потом composable.
+
+Не менять `nuxt.config` / `.env` без запроса. Не добавлять зависимости без обоснования.

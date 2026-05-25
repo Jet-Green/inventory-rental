@@ -18,7 +18,7 @@ export default {
 
   async submitVerification(
     payload: ISubmitOrganizationVerificationPayload,
-  ): Promise<{ organization: unknown }> {
+  ): Promise<{ organization: IOrganization }> {
     return useNuxtApp().$apiFetch("/user/submit-organization-verification", {
       method: "POST",
       body: payload,
