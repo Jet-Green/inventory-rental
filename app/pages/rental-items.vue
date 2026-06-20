@@ -57,7 +57,7 @@ async function applyFilters(): Promise<void> {
         :loading="isLoading"
         @click="loadMore"
       >
-        Показать еще
+        Показать ещё
       </v-btn>
     </div>
   </section>

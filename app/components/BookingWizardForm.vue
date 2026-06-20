@@ -688,7 +688,7 @@ async function pay(): Promise<void> {
           </template>
         </v-checkbox>
         <p class="text-caption mt-3 text-medium-emphasis">
-          После оплаты сформируются PDF: договор аренды и акт приёма-передачи.
+          После оплаты сформируются PDF: договор аренды и агентский договор.
         </p>
       </div>
 

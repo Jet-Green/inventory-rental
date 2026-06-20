@@ -1,5 +1,6 @@
 import AdminApi from "~/api/AdminApi";
-import type { IOrganization, IRentalListing } from "~/types/rental";
+import BookingApi from "~/api/BookingApi";
+import type { IBookingItem, IOrganization, IRentalListing } from "~/types/rental";
 
 export function useAdminDashboard() {
   const dashboard = useState("admin-dashboard", () => ({
@@ -12,20 +13,24 @@ export function useAdminDashboard() {
     "admin-organization-verification-requests",
     () => [],
   );
+  const recentBookings = useState<IBookingItem[]>("admin-recent-bookings", () => []);
   const isLoading = useState<boolean>("admin-loading", () => false);
 
   async function fetchAdminData(): Promise<void> {
     try {
       isLoading.value = true;
-      const [dashboardData, listingsData, requestsData] = await Promise.all([
-        AdminApi.dashboard(),
-        AdminApi.listings(),
-        AdminApi.organizationVerificationRequests(),
-      ]);
+      const [dashboardData, listingsData, requestsData, recentData] =
+        await Promise.all([
+          AdminApi.dashboard(),
+          AdminApi.listings(),
+          AdminApi.organizationVerificationRequests(),
+          BookingApi.adminRecent().catch(() => ({ bookings: [] })),
+        ]);
       dashboard.value = dashboardData;
       listings.value = listingsData.data || [];
       organizationVerificationRequests.value =
         requestsData.organizations || [];
+      recentBookings.value = recentData.bookings || [];
     } finally {
       isLoading.value = false;
     }
@@ -62,6 +67,7 @@ export function useAdminDashboard() {
     dashboard,
     listings,
     organizationVerificationRequests,
+    recentBookings,
     isLoading,
     fetchAdminData,
     fetchOrganizationVerificationRequests,

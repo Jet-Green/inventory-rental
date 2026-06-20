@@ -5,17 +5,27 @@ definePageMeta({
 });
 
 import { useAdminDashboard } from "~/composables/useAdminDashboard";
-import { mongoIdHead } from "~/utils/mongoId";
+import { mongoIdHead, mongoIdTail } from "~/utils/mongoId";
+import type { BookingStatus } from "~/types/rental";
 
 const {
   dashboard,
   listings,
   organizationVerificationRequests,
+  recentBookings,
   isLoading,
   fetchAdminData,
   approveOrganizationVerification,
   rejectOrganizationVerification,
 } = useAdminDashboard();
+
+const BOOKING_STATUS_LABEL: Record<BookingStatus, string> = {
+  pending: "ожидает оплаты",
+  confirmed: "оплачено",
+  active: "активно",
+  completed: "завершено",
+  cancelled: "отменено",
+};
 
 onMounted(() => {
   void fetchAdminData();
@@ -100,8 +110,16 @@ function managersLine(managers: unknown): string {
       <v-col cols="12" md="4">
         <div class="gv-card-elevated pa-4">
           <p class="text-body-2 font-weight-semibold mb-3">Последние брони</p>
-          <p class="text-caption text-medium-emphasis mb-2">BRN-…9184 · оплачено</p>
-          <p class="text-caption text-medium-emphasis">BRN-…9170 · ожидает</p>
+          <p
+            v-for="b in recentBookings.slice(0, 5)"
+            :key="b._id"
+            class="text-caption text-medium-emphasis mb-2"
+          >
+            BRN-…{{ mongoIdTail(b._id, 4) }} · {{ BOOKING_STATUS_LABEL[b.status] || b.status }}
+          </p>
+          <p v-if="!recentBookings.length" class="text-caption text-medium-emphasis">
+            Броней пока нет
+          </p>
         </div>
       </v-col>
     </v-row>

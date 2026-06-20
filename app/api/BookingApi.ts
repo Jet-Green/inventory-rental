@@ -29,6 +29,13 @@ export default {
     });
   },
 
+  /** Последние брони по всей платформе (только админ). */
+  async adminRecent(): Promise<{ bookings: IBookingItem[] }> {
+    return useNuxtApp().$apiFetch("/booking/admin/recent", {
+      method: "GET",
+    });
+  },
+
   /** Ручная смена статуса (разрешённые переходы — на стороне backend). */
   async updateStatus(
     id: string,
