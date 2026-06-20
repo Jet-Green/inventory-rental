@@ -12,12 +12,6 @@ const cover = computed(() => props.item.photos?.[0] || "");
 
 const to = computed(() => `${props.toBase || "/rental-item"}/${props.item._id}`);
 
-const pickupLabel = computed(() => {
-  if (props.item.pickupType === "pickup") return "Самовывоз";
-  if (props.item.pickupType === "delivery") return "Доставка";
-  return "Самовывоз / доставка";
-});
-
 const categoriesLine = computed(
   () => props.item.categories?.map((c) => c.name).join(" · ") || "Каталог",
 );
@@ -37,7 +31,7 @@ function open(): void {
     class="listing-card gv-card-elevated"
     role="link"
     tabindex="0"
-    :aria-label="`${item.title}, ${priceLabel} ₽ в день`"
+    :aria-label="`Аренда: ${item.title}, ${priceLabel} ₽ в день`"
     @click="open"
     @keydown.enter="open"
   >
@@ -52,16 +46,16 @@ function open(): void {
       <h3 class="listing-card__title">{{ item.title }}</h3>
       <p class="listing-card__meta">{{ categoriesLine }}</p>
       <p class="listing-card__sub">
-        {{ pickupLabel }} · в наличии {{ item.unitsAvailable }} шт.
+        <v-icon icon="mdi-calendar-blank-outline" size="14" class="listing-card__sub-icon" />
+        посуточно · в наличии {{ item.unitsAvailable }} шт.
       </p>
 
       <div class="listing-card__footer">
         <span class="listing-card__price">
           {{ priceLabel }} ₽<span class="listing-card__per">/ день</span>
         </span>
-        <span class="listing-card__cta gv-cta">
-          Взять
-          <v-icon icon="mdi-arrow-right" size="16" />
+        <span class="listing-card__go" aria-hidden="true">
+          <v-icon icon="mdi-arrow-right" size="18" />
         </span>
       </div>
     </div>
@@ -73,7 +67,7 @@ function open(): void {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  min-height: 380px;
+  min-height: 360px;
   cursor: pointer;
   transition:
     box-shadow 0.2s ease,
@@ -127,11 +121,18 @@ function open(): void {
 
 .listing-card__sub {
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-size: 12px;
   color: var(--gv-available-text);
 }
 
-/* Низ карточки: цена слева, компактный CTA справа. margin-top auto
+.listing-card__sub-icon {
+  color: var(--gv-available-text);
+}
+
+/* Низ карточки: цена слева, стрелка-«перейти» справа. margin-top auto
    прижимает блок к низу, чтобы у всех карточек он был на одной линии. */
 .listing-card__footer {
   margin-top: auto;
@@ -156,28 +157,31 @@ function open(): void {
   color: var(--gv-text-muted);
 }
 
-/* Компактный CTA-«пилюля». Спокойный по умолчанию, наливается оранжевым
-   при наведении на карточку — чтобы оранжевые блоки не повторялись по всей сетке. */
-.listing-card__cta {
+/* Стрелка-аффорданс вместо кнопки. Спокойная в покое, наливается
+   оранжевым при наведении на карточку — «можно открыть и взять». */
+.listing-card__go {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-  padding: 7px 14px;
-  border-radius: var(--gv-radius-btn);
-  border: 1.5px solid var(--gv-primary);
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1.5px solid var(--gv-primary-soft-border);
   color: var(--gv-primary);
-  background: transparent;
-  font-size: 13px;
-  line-height: 1;
+  background: var(--gv-primary-soft-bg);
   transition:
     background-color 0.15s ease,
-    color 0.15s ease;
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
 }
 
-.listing-card:hover .listing-card__cta,
-.listing-card:focus-visible .listing-card__cta {
+.listing-card:hover .listing-card__go,
+.listing-card:focus-visible .listing-card__go {
   background: var(--gv-primary);
+  border-color: var(--gv-primary);
   color: #ffffff;
+  transform: translateX(2px);
 }
 </style>
