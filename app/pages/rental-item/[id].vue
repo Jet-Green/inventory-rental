@@ -44,7 +44,10 @@ const pickupLabel = computed(() => {
 const categoriesLine = computed(() => {
   const l = currentListing.value;
   if (!l?.categories?.length) return "";
-  return `${l.categories.map((c) => c).join(" · ")}`;
+  return l.categories
+    .map((c) => (typeof c === "string" ? c : c?.name))
+    .filter(Boolean)
+    .join(" · ");
 });
 
 const bookingHint = computed(() => {
@@ -67,9 +70,9 @@ function startBooking(): void {
 
 useSeoMeta({
   title: currentListing.value?.title
-    ? `${currentListing.value.title} — gorodaivesi.ru`
+    ? `${currentListing.value.title} — Аренда инвентаря`
     : "Объявление",
-  description: currentListing.value?.description || "Аренда оборудования",
+  description: currentListing.value?.description || "Аренда инвентаря",
 });
 </script>
 
@@ -77,7 +80,7 @@ useSeoMeta({
   <div class="listing-page pb-12 pt-6">
     <v-progress-linear v-if="isLoading" indeterminate color="primary" />
     <div v-if="currentListing" class="gv-page-wide px-4 px-sm-6">
-      <v-row class="ga-6">
+      <v-row class="align-start">
         <v-col cols="12" lg="8">
           <div class="mb-5">
             <div
@@ -105,33 +108,6 @@ useSeoMeta({
               </button>
             </div>
           </div>
-
-          <div class="gv-card-elevated pa-5 mb-6">
-            <h1 class="gv-display text-h5 mb-2">{{ currentListing.title }}</h1>
-            <p class="text-body-2 mb-3" style="color: rgba(0,0,0,0.5)">
-              {{ categoriesLine }}
-            </p>
-            <p class="text-body-1 mb-4" style="color: rgba(0,0,0,0.75)">
-              {{ currentListing.description }}
-            </p>
-            <div class="d-flex flex-column ga-2">
-              <span class="text-primary font-weight-semibold">
-                Цена:
-                {{ new Intl.NumberFormat("ru-RU").format(currentListing.pricePerDay) }} ₽ / день
-              </span>
-              <span class="text-body-2" style="color: rgba(0,0,0,0.65)">
-                Мин. срок: {{ currentListing.minDays }} дн.
-              </span>
-              <span class="text-body-2" style="color: var(--gv-available)">
-                Доступно: {{ currentListing.unitsAvailable }} ед.
-              </span>
-              <span class="text-body-2" style="color: rgba(0,0,0,0.6)">
-                Получение: {{ pickupLabel }}
-              </span>
-            </div>
-          </div>
-
-          <RentalCalendar :ranges="currentListing.calendar" />
         </v-col>
 
         <v-col cols="12" lg="4">
@@ -163,6 +139,35 @@ useSeoMeta({
               {{ bookingHint }}
             </p>
           </div>
+        </v-col>
+
+        <v-col cols="12">
+          <div class="gv-card-elevated pa-5 mb-6">
+            <h1 class="gv-display text-h5 mb-2">{{ currentListing.title }}</h1>
+            <p class="text-body-2 mb-3" style="color: rgba(0,0,0,0.5)">
+              {{ categoriesLine }}
+            </p>
+            <p class="text-body-1 mb-4" style="color: rgba(0,0,0,0.75)">
+              {{ currentListing.description }}
+            </p>
+            <div class="d-flex flex-column ga-2">
+              <span class="text-primary font-weight-semibold">
+                Цена:
+                {{ new Intl.NumberFormat("ru-RU").format(currentListing.pricePerDay) }} ₽ / день
+              </span>
+              <span class="text-body-2" style="color: rgba(0,0,0,0.65)">
+                Мин. срок: {{ currentListing.minDays }} дн.
+              </span>
+              <span class="text-body-2 font-weight-medium" style="color: var(--gv-available-text)">
+                Доступно: {{ currentListing.unitsAvailable }} ед.
+              </span>
+              <span class="text-body-2" style="color: rgba(0,0,0,0.6)">
+                Получение: {{ pickupLabel }}
+              </span>
+            </div>
+          </div>
+
+          <RentalCalendar :ranges="currentListing.calendar" />
         </v-col>
       </v-row>
     </div>

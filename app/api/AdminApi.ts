@@ -1,4 +1,9 @@
-import type { IOrganization, IRentalListing } from "~/types/rental";
+import type {
+  IAdminUser,
+  IOrganization,
+  IRentalListing,
+  UserRole,
+} from "~/types/rental";
 
 export default {
   async dashboard(): Promise<{
@@ -22,13 +27,55 @@ export default {
     });
   },
 
-  async moderate(
-    listingId: string,
-    status: "active" | "pending" | "rejected" | "hidden",
-  ): Promise<{ listing: IRentalListing }> {
-    return useNuxtApp().$apiFetch("/rental-listing/moderation", {
+  /** Одобрить листинг (status=active). */
+  async approveListing(id: string): Promise<{ listing: IRentalListing }> {
+    return useNuxtApp().$apiFetch(`/admin/listings/${id}/approve`, {
       method: "POST",
-      body: { listingId, status },
+    });
+  },
+
+  /** Отклонить листинг с причиной (status=rejected). */
+  async rejectListing(
+    id: string,
+    rejectionReason?: string,
+  ): Promise<{ listing: IRentalListing }> {
+    return useNuxtApp().$apiFetch(`/admin/listings/${id}/reject`, {
+      method: "POST",
+      body: { rejectionReason },
+    });
+  },
+
+  /** Скрыть листинг (status=hidden). */
+  async hideListing(id: string): Promise<{ listing: IRentalListing }> {
+    return useNuxtApp().$apiFetch(`/admin/listings/${id}/hide`, {
+      method: "POST",
+    });
+  },
+
+  async deleteListing(id: string): Promise<{ deleted: boolean }> {
+    return useNuxtApp().$apiFetch(`/admin/listings/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  /** Пользователи с агрегатами и фильтрами по роли/верификации. */
+  async users(params?: {
+    role?: UserRole;
+    verification?: "pending" | "approved" | "rejected" | "none";
+  }): Promise<{ users: IAdminUser[]; total: number }> {
+    return useNuxtApp().$apiFetch("/admin/users", {
+      method: "GET",
+      query: params,
+    });
+  },
+
+  async setUserBlocked(
+    id: string,
+    isBlocked: boolean,
+  ): Promise<{ user: Partial<IAdminUser> }> {
+    return useNuxtApp().$apiFetch(`/admin/users/${id}/blocked`, {
+      method: "PATCH",
+      body: { isBlocked },
     });
   },
 

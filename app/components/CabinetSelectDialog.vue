@@ -23,7 +23,7 @@ function goBusinessCabinet(): void {
 
 <template>
   <v-dialog v-model="isOpen" max-width="560" scrollable>
-    <v-card rounded="xl" class="pa-2">
+    <v-card class="pa-2 gv-modal">
       <v-card-title class="gv-display text-h6 pb-2">
         Выберите кабинет
       </v-card-title>
@@ -36,6 +36,7 @@ function goBusinessCabinet(): void {
         <v-row class="ga-4">
           <v-col cols="12" sm="6">
             <div class="gv-card-elevated pa-5 h-100 d-flex flex-column rounded-lg">
+              <v-icon icon="mdi-account-outline" size="32" color="primary" class="mb-2" />
               <h3 class="gv-display text-subtitle-1 mb-2">Личный кабинет</h3>
               <p class="text-body-2 text-medium-emphasis mb-4 flex-grow-1">
                 Бронируйте технику, следите за заказами и документами.
@@ -56,6 +57,7 @@ function goBusinessCabinet(): void {
           </v-col>
           <v-col cols="12" sm="6">
             <div class="gv-card-elevated pa-5 h-100 d-flex flex-column rounded-lg">
+              <v-icon icon="mdi-store-outline" size="32" color="primary" class="mb-2" />
               <h3 class="gv-display text-subtitle-1 mb-2">Кабинет бизнеса</h3>
               <p class="text-body-2 text-medium-emphasis mb-4 flex-grow-1">
                 Объявления, брони и выплаты как компания или ИП.

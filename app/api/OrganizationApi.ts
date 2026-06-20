@@ -1,4 +1,8 @@
-import type { IOrganization, LegalStatus } from "~/types/rental";
+import type {
+  IDadataCompany,
+  IOrganization,
+  LegalStatus,
+} from "~/types/rental";
 
 export interface ISubmitOrganizationVerificationPayload {
   legalStatus: LegalStatus;
@@ -22,6 +26,14 @@ export default {
     return useNuxtApp().$apiFetch("/user/submit-organization-verification", {
       method: "POST",
       body: payload,
+    });
+  },
+
+  /** Проксирование DaData по ИНН (10 или 12 цифр). */
+  async dadata(inn: string): Promise<{ companies: IDadataCompany[] }> {
+    return useNuxtApp().$apiFetch("/organization/dadata", {
+      method: "GET",
+      query: { inn },
     });
   },
 };

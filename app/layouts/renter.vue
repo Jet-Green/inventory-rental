@@ -21,8 +21,8 @@ function isActive(path: string): boolean {
     <header class="cabinet-header border-b">
       <div class="cabinet-header__row gv-page-wide px-4 px-sm-6">
         <div class="d-flex align-center ga-3 flex-wrap">
-          <NuxtLink to="/" class="gv-display text-decoration-none text-body-1 font-weight-black">
-            gorodaivesi.ru
+          <NuxtLink to="/" class="text-decoration-none" aria-label="Аренда инвентаря">
+            <AppLogo :size="26" />
           </NuxtLink>
           <span class="text-primary font-weight-semibold text-caption">Личный кабинет</span>
           <a

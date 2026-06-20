@@ -89,6 +89,9 @@ function formatDateRu(dateIso?: string): string {
       ]" item-title="title" item-value="value" label="Способ получения" density="comfortable" variant="outlined"
         hide-details clearable class="gv-filters__field gv-filters__field--wide" rounded="lg"
         @update:model-value="updateField('pickupType', $event as ICatalogFilters['pickupType'])" />
+      <v-text-field :model-value="modelValue.unitsNeeded ?? null" label="Нужно единиц" type="number" :min="1"
+        density="comfortable" variant="outlined" hide-details clearable class="gv-filters__field" rounded="lg"
+        @update:model-value="updateField('unitsNeeded', $event ? Number($event) : undefined)" />
       <v-select :model-value="modelValue.categories || []" :items="categories" item-title="name" item-value="key"
         label="Категории" density="comfortable" variant="outlined" hide-details multiple chips closable-chips
         class="gv-filters__field gv-filters__field--grow" rounded="lg"

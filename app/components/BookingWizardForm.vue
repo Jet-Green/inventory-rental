@@ -17,12 +17,14 @@ const router = useRouter();
 const { currentListing, fetchListingById, isLoading } = useRentalItem();
 const { isRenter, isAdmin } = useRole();
 const { profile, fetchProfile, updateProfile } = useAuthProfile();
-const { createBooking, isSubmitting } = useBooking();
+const { createBooking, payBooking, isSubmitting } = useBooking();
 const draft = useBookingDraft();
 const busyRanges = ref<IBookedRange[]>([]);
 
 const step = ref(1);
 const stepError = ref("");
+const startTimeDialogOpen = ref(false);
+const startTimeDialogValue = ref("");
 
 const period = reactive({
   dateFrom: "",
@@ -55,9 +57,6 @@ const stepTitles: Record<number, string> = {
   3: "Укажите контактные данные",
   4: "Подтверждение и оплата",
 };
-
-const startCalendarOpen = ref(false);
-const endCalendarOpen = ref(false);
 
 interface IWorkingWindow {
   from: string;
@@ -158,28 +157,6 @@ function buildTimeOptions(from: string, to: string): Array<{ title: string; valu
   return values;
 }
 
-const startDateOptions = computed<Array<{ value: string; label: string }>>(() => {
-  const options: Array<{ value: string; label: string }> = [];
-  for (let i = 0; i < 21 && options.length < 4; i += 1) {
-    const dateIso = dayjs().add(i, "day").format("YYYY-MM-DD");
-    if (!canPickupOnDate(dateIso)) continue;
-
-    let label = formatDateRu(dateIso);
-    if (i === 0) label = "Сегодня";
-    if (i === 1) label = "Завтра";
-    options.push({ value: dateIso, label });
-  }
-
-  if (period.startDate && !options.some((option) => option.value === period.startDate)) {
-    options.unshift({
-      value: period.startDate,
-      label: formatDateRu(period.startDate),
-    });
-  }
-
-  return options.slice(0, 4);
-});
-
 const selectedStartWindow = computed(() => windowForDate(period.startDate));
 
 const startTimeOptions = computed(() => {
@@ -192,28 +169,6 @@ const minRentalDays = computed(() => currentListing.value?.minDays ?? 1);
 
 const maxRentalDays = computed(() => Math.max(minRentalDays.value, 31));
 
-const rentalDaysOptions = computed<Array<{ value: number; label: string }>>(() => {
-  if (!period.startDate || !period.startTime) return [];
-  const options: Array<{ value: number; label: string }> = [];
-  const startFrom = minRentalDays.value;
-  for (let i = 0; i < 4; i += 1) {
-    const days = startFrom + i;
-    if (days > maxRentalDays.value) break;
-    options.push({
-      value: days,
-      label: `${days} дн.`,
-    });
-  }
-  if (period.rentalDays && !options.some((option) => option.value === period.rentalDays)) {
-    options.unshift({
-      value: period.rentalDays,
-      label: `${period.rentalDays} дн.`,
-    });
-  }
-
-  return options.slice(0, 4);
-});
-
 const startDateDisplay = computed(() =>
   period.startDate ? formatDateRu(period.startDate, true) : "",
 );
@@ -222,35 +177,49 @@ const endDateDisplay = computed(() =>
   period.endDate ? formatDateRu(period.endDate, true) : "",
 );
 
-function selectStartDate(dateIso: string): void {
-  if (!dateIso || !canPickupOnDate(dateIso)) return;
-  period.startDate = dateIso;
-  startCalendarOpen.value = false;
-}
-
-function selectEndDate(dateIso: string): void {
-  if (!dateIso || !allowedEndDate(dateIso) || !period.startDate) return;
-  const diff = dayjs(dateIso).diff(dayjs(period.startDate), "day");
-  if (diff < minRentalDays.value || diff > maxRentalDays.value) return;
-  period.rentalDays = diff;
-  endCalendarOpen.value = false;
-}
-
-function normalizePickerDate(value: unknown): string {
-  if (!value) return "";
-  const parsed = dayjs(String(value));
-  if (!parsed.isValid()) return "";
-  return parsed.format("YYYY-MM-DD");
-}
-
 function allowedStartDate(dateIso: string): boolean {
   return canPickupOnDate(dateIso);
 }
 
-function allowedEndDate(dateIso: string): boolean {
-  if (!period.startDate) return false;
-  const diff = dayjs(dateIso).diff(dayjs(period.startDate), "day");
-  return diff >= minRentalDays.value && diff <= maxRentalDays.value;
+function applySelectedRange(payload: {
+  startDate: string;
+  endDate: string;
+  rentalDays: number;
+}): void {
+  if (!payload.startDate || !payload.endDate || payload.rentalDays < minRentalDays.value) return;
+  stepError.value = "";
+  period.startDate = payload.startDate;
+  period.endDate = payload.endDate;
+  period.rentalDays = payload.rentalDays;
+}
+
+function onBlockedCalendarClick(message: string): void {
+  stepError.value = message;
+}
+
+function onCalendarStartPicked(dateIso: string): void {
+  if (!dateIso) return;
+  period.startDate = dateIso;
+  period.endDate = "";
+  period.rentalDays = 0;
+  void nextTick(() => {
+    const available = startTimeOptions.value.map((item) => item.value);
+    if (!available.length) {
+      stepError.value = "Для выбранной даты нет доступного времени старта.";
+      return;
+    }
+    startTimeDialogValue.value = available.includes(period.startTime)
+      ? period.startTime
+      : available[0] || "";
+    stepError.value = "";
+    startTimeDialogOpen.value = true;
+  });
+}
+
+function applyStartTimeFromDialog(): void {
+  if (!startTimeDialogValue.value) return;
+  period.startTime = startTimeDialogValue.value;
+  startTimeDialogOpen.value = false;
 }
 
 async function fetchBusyRangesByListingId(id: string): Promise<void> {
@@ -332,24 +301,67 @@ const derivedDateTo = computed(() => {
   return dayjs(period.startDate).add(bookingDays.value, "day").format("YYYY-MM-DD");
 });
 
-const reservedUnitsForPeriod = computed(() => {
-  if (!derivedDateFrom.value || !derivedDateTo.value) return 0;
-  const requestedFromTs = dayjs(derivedDateFrom.value).valueOf();
-  const requestedToTs = dayjs(derivedDateTo.value).valueOf();
-  if (!Number.isFinite(requestedFromTs) || !Number.isFinite(requestedToTs)) return 0;
-  return busyRanges.value.reduce((sum, range) => {
+function maxReservedUnitsInRange(startIso: string, endIso: string): number {
+  const rangeFromTs = dayjs(startIso).valueOf();
+  const rangeToTs = dayjs(endIso).valueOf();
+  if (!Number.isFinite(rangeFromTs) || !Number.isFinite(rangeToTs) || rangeToTs <= rangeFromTs) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  const events: Array<{ ts: number; delta: number }> = [];
+  for (const range of busyRanges.value) {
     const bookingFromTs = dayjs(range.dateFrom).valueOf();
     const bookingToTs = dayjs(range.dateTo).valueOf();
-    if (!Number.isFinite(bookingFromTs) || !Number.isFinite(bookingToTs)) return sum;
-    const overlaps = bookingFromTs < requestedToTs && bookingToTs > requestedFromTs;
-    return overlaps ? sum + range.units : sum;
-  }, 0);
+    if (!Number.isFinite(bookingFromTs) || !Number.isFinite(bookingToTs)) continue;
+    if (bookingToTs <= rangeFromTs || bookingFromTs >= rangeToTs) continue;
+    const start = Math.max(rangeFromTs, bookingFromTs);
+    const end = Math.min(rangeToTs, bookingToTs);
+    if (end <= start) continue;
+    events.push({ ts: start, delta: range.units });
+    events.push({ ts: end, delta: -range.units });
+  }
+
+  events.sort((a, b) => (a.ts === b.ts ? a.delta - b.delta : a.ts - b.ts));
+  let active = 0;
+  let maxActive = 0;
+  for (const event of events) {
+    active += event.delta;
+    if (active > maxActive) maxActive = active;
+  }
+  return maxActive;
+}
+
+const reservedUnitsForPeriod = computed(() => {
+  if (!derivedDateFrom.value || !derivedDateTo.value) return 0;
+  const reserved = maxReservedUnitsInRange(derivedDateFrom.value, derivedDateTo.value);
+  return Number.isFinite(reserved) ? reserved : 0;
 });
 
 const unitsAvailableForPeriod = computed(() => {
   const total = currentListing.value?.unitsTotal ?? 0;
   return Math.max(0, total - reservedUnitsForPeriod.value);
 });
+
+function isRangeAvailableForUnits(startDateIso: string, endDateIso: string): boolean {
+  if (!startDateIso || !endDateIso) return false;
+  const startWithTime = dayjs(`${startDateIso}T${period.startTime || "00:00"}`).toISOString();
+  const requestedUnits = Math.max(1, Number(period.units) || 1);
+  const total = currentListing.value?.unitsTotal ?? 0;
+  const reserved = maxReservedUnitsInRange(startWithTime, endDateIso);
+  if (!Number.isFinite(reserved)) return false;
+  return total - reserved >= requestedUnits;
+}
+
+function isDateOverCapacity(dateIso: string): boolean {
+  if (!dateIso) return false;
+  const requestedUnits = Math.max(1, Number(period.units) || 1);
+  const total = currentListing.value?.unitsTotal ?? 0;
+  const dayStart = dayjs(dateIso).startOf("day").toISOString();
+  const dayEnd = dayjs(dateIso).add(1, "day").startOf("day").toISOString();
+  const reserved = maxReservedUnitsInRange(dayStart, dayEnd);
+  if (!Number.isFinite(reserved)) return false;
+  return total - reserved < requestedUnits;
+}
 
 const rentalSubtotal = computed(() => {
   const l = currentListing.value;
@@ -457,13 +469,6 @@ watch(
     if (!available.includes(period.startTime)) {
       period.startTime = available[0] || "";
     }
-
-    if (period.rentalDays < minRentalDays.value) {
-      period.rentalDays = minRentalDays.value;
-    }
-    if (period.rentalDays > maxRentalDays.value) {
-      period.rentalDays = maxRentalDays.value;
-    }
   },
 );
 
@@ -497,6 +502,12 @@ watch(
   (value) => {
     if (!period.startDate) return;
     const normalized = Number.isFinite(value) ? Math.trunc(value) : 0;
+    if (normalized <= 0) {
+      if (value !== 0) {
+        period.rentalDays = 0;
+      }
+      return;
+    }
     const clamped = Math.min(maxRentalDays.value, Math.max(minRentalDays.value, normalized));
     if (clamped !== value) {
       period.rentalDays = clamped;
@@ -527,13 +538,20 @@ async function pay(): Promise<void> {
     phone: contacts.phone,
     email: contacts.email,
   });
-  await createBooking({
+  // 1) создаём бронь (pending) — backend генерирует PDF-договоры
+  const created = await createBooking({
     listingId: draft.value.listingId,
     dateFrom: draft.value.dateFrom,
     dateTo: draft.value.dateTo,
     units: draft.value.units,
     acceptedPersonalData: contacts.agreePersonal,
   });
+  // 2) оплата-заглушка переводит бронь в confirmed
+  try {
+    await payBooking(created.bookingId);
+  } catch {
+    // если оплата не прошла — бронь уже создана (pending), показываем success с документами
+  }
   draft.value = null;
   await navigateTo("/booking/success");
 }
@@ -568,65 +586,23 @@ async function pay(): Promise<void> {
 
       <div v-show="step === 1" class="max-w-screen-md">
         <div class="mb-4">
-          <p class="text-body-2 font-weight-medium mb-2">1) Дата начала</p>
-          <div class="d-flex flex-wrap align-center ga-2 mb-2">
-            <v-chip v-for="option in startDateOptions" :key="option.value"
-              :color="period.startDate === option.value ? 'primary' : undefined"
-              :variant="period.startDate === option.value ? 'flat' : 'outlined'" class="booking-wizard__date-chip"
-              rounded="pill" label @click="selectStartDate(option.value)">
-              {{ option.label }}
-            </v-chip>
-            <v-menu v-model="startCalendarOpen" :close-on-content-click="false">
-              <template #activator="{ props: menuProps }">
-                <v-btn v-bind="menuProps" icon="mdi-calendar-month-outline" variant="text" color="primary" size="small"
-                  aria-label="Выбрать дату начала в календаре" />
-              </template>
-              <v-card>
-                <v-date-picker :model-value="period.startDate || undefined" :allowed-dates="allowedStartDate"
-                  color="primary" show-adjacent-months
-                  @update:model-value="selectStartDate(normalizePickerDate($event))" />
-              </v-card>
-            </v-menu>
-          </div>
+          <p class="text-body-2 font-weight-medium mb-2">1) Выберите диапазон аренды</p>
+          <BookingRangeCalendar :start-date="period.startDate" :end-date="period.endDate"
+            :min-rental-days="minRentalDays" :busy-ranges="busyRanges" :can-start-date="allowedStartDate"
+            :is-range-available="isRangeAvailableForUnits" :is-date-over-capacity="isDateOverCapacity"
+            @update:range="applySelectedRange" @blocked-click="onBlockedCalendarClick"
+            @start-picked="onCalendarStartPicked" />
+          <p v-if="period.startDate && endDateDisplay" class="text-caption text-medium-emphasis mb-0">
+            Период: {{ formatDateRu(period.startDate, true) }} — {{ endDateDisplay }} ({{ bookingDays }} дн.)
+          </p>
         </div>
 
         <div v-if="period.startDate" class="mb-4">
-          <p class="text-body-2 font-weight-medium mb-2">2) Выберите время начала аренды</p>
+          <p class="text-body-2 font-weight-medium mb-2">2) Время начала аренды</p>
           <v-select v-model="period.startTime" :items="startTimeOptions" item-title="title" item-value="value"
             label="Время начала" variant="outlined" rounded="lg" hide-details />
           <p v-if="selectedStartWindow" class="text-caption text-medium-emphasis mt-2 mb-0">
             Доступно в этот день: {{ selectedStartWindow.from }} — {{ selectedStartWindow.to }}
-          </p>
-        </div>
-
-        <div v-if="period.startDate && period.startTime" class="mb-3">
-          <p class="text-body-2 font-weight-medium mb-2">3) Срок аренды</p>
-          <div class="d-flex flex-wrap align-center ga-2 mb-2">
-            <v-chip v-for="option in rentalDaysOptions" :key="option.value"
-              :color="period.rentalDays === option.value ? 'primary' : undefined"
-              :variant="period.rentalDays === option.value ? 'flat' : 'outlined'" class="booking-wizard__date-chip"
-              rounded="pill" label @click="period.rentalDays = option.value">
-              {{ option.label }}
-            </v-chip>
-            <v-menu v-model="endCalendarOpen" :close-on-content-click="false">
-              <template #activator="{ props: menuProps }">
-                <v-btn v-bind="menuProps" icon="mdi-calendar-month-outline" variant="text" color="primary" size="small"
-                  aria-label="Выбрать дату окончания в календаре" />
-              </template>
-              <v-card>
-                <v-date-picker :model-value="period.endDate || undefined" :allowed-dates="allowedEndDate"
-                  :min="period.startDate || undefined" color="primary" show-adjacent-months
-                  @update:model-value="selectEndDate(normalizePickerDate($event))" />
-              </v-card>
-            </v-menu>
-          </div>
-          <v-text-field v-model.number="period.rentalDays" type="number" :min="minRentalDays" :max="maxRentalDays"
-            label="Срок аренды, дней" variant="outlined" rounded="lg" hide-details class="mb-2" />
-          <p v-if="endDateDisplay" class="text-caption text-medium-emphasis mt-2 mb-0">
-            Возврат: {{ endDateDisplay }}
-          </p>
-          <p class="text-caption text-medium-emphasis mt-1 mb-0">
-            Минимальный срок аренды: {{ minRentalDays }} дн.
           </p>
         </div>
 
@@ -736,6 +712,28 @@ async function pay(): Promise<void> {
       Объявление не найдено.
       <NuxtLink to="/listings">Вернуться в каталог</NuxtLink>
     </p>
+
+    <v-dialog v-model="startTimeDialogOpen" max-width="420">
+      <v-card rounded="lg">
+        <v-card-title class="text-subtitle-1 font-weight-semibold">
+          Выберите время старта аренды
+        </v-card-title>
+        <v-card-text>
+          <p class="text-caption text-medium-emphasis mb-3">
+            Дата старта: {{ startDateDisplay || "—" }}
+          </p>
+          <v-select v-model="startTimeDialogValue" :items="startTimeOptions" item-title="title" item-value="value"
+            label="Время старта" variant="outlined" rounded="lg" hide-details />
+        </v-card-text>
+        <v-card-actions class="px-4 pb-4">
+          <v-spacer />
+          <v-btn variant="text" @click="startTimeDialogOpen = false">Отмена</v-btn>
+          <v-btn color="primary" variant="flat" @click="applyStartTimeFromDialog">
+            Применить
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 

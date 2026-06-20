@@ -11,13 +11,11 @@ onMounted(() => {
   void fetchMyBookings();
 });
 
-function statusRu(status: string): string {
-  const map: Record<string, string> = {
-    pending: "Ожидает оплаты",
-    confirmed: "Оплачено",
-    cancelled: "Отменено",
-  };
-  return map[status] || status;
+function listingIdOf(listingId: unknown): string {
+  if (listingId && typeof listingId === "object") {
+    return (listingId as { _id?: string })._id || "";
+  }
+  return String(listingId || "");
 }
 </script>
 
@@ -35,32 +33,41 @@ function statusRu(status: string): string {
         <p class="font-weight-semibold mb-2">
           {{ booking.listingId?.title || "Бронирование" }}
         </p>
-        <p class="text-caption text-medium-emphasis mb-2">
-          {{ booking.dateFrom?.slice(0, 10) }} — {{ booking.dateTo?.slice(0, 10) }} ·
-          {{ statusRu(booking.status) }}
-        </p>
-        <p class="text-caption mb-3" style="color: var(--gv-link)">
-          Бизнес: см. договор ·
+        <div class="d-flex align-center ga-2 mb-2 flex-wrap">
+          <span class="text-caption text-medium-emphasis">
+            {{ booking.dateFrom?.slice(0, 10) }} — {{ booking.dateTo?.slice(0, 10) }}
+          </span>
+          <StatusChip :status="booking.status" type="booking" />
+        </div>
+        <p v-if="booking.rentalAgreementPdfUrl" class="text-caption mb-3">
           <a
-            v-if="booking.rentalAgreementPdfUrl"
             :href="booking.rentalAgreementPdfUrl"
             target="_blank"
+            rel="noopener"
             class="gv-link"
           >
             Договор.pdf
           </a>
         </p>
         <v-btn
-          :to="`/rental-item/${typeof booking.listingId === 'object' && booking.listingId ? booking.listingId._id : booking.listingId || ''}`"
+          :to="`/rental-item/${listingIdOf(booking.listingId)}`"
           variant="outlined"
           color="primary"
           class="gv-cta"
           rounded="lg"
+          size="small"
         >
           Подробнее
         </v-btn>
       </div>
     </div>
-    <p v-else class="text-medium-emphasis">Бронирований пока нет.</p>
+    <EmptyState
+      v-else-if="!isLoading"
+      title="Бронирований пока нет"
+      description="Найдите оборудование в каталоге и оформите первую аренду."
+      action-title="В каталог"
+      @action="navigateTo('/')"
+    />
+    <p v-else class="text-medium-emphasis">Загрузка…</p>
   </div>
 </template>

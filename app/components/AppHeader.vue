@@ -46,10 +46,9 @@ function openPlaceListing(): void {
   >
     <div class="gv-header__inner gv-page-wide">
       <div class="gv-header__brand">
-        <NuxtLink to="/" class="gv-header__logo gv-display">gorodaivesi.ru</NuxtLink>
-        <p v-if="variant === 'marketing'" class="gv-header__tagline">
-          Аренда оборудования
-        </p>
+        <NuxtLink to="/" class="gv-header__logo" aria-label="Аренда инвентаря — на главную">
+          <AppLogo :size="variant === 'compact' ? 30 : 34" />
+        </NuxtLink>
         <span v-if="variant === 'compact'" class="gv-header__catalog-note">
           · Каталог аренды
         </span>

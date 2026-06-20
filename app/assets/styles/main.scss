@@ -1,20 +1,39 @@
 :root {
+  /* --- БРЕНД --- */
   --gv-primary: #ff6600;
+  --gv-primary-hover: #e55a00;
   --gv-primary-soft-bg: #fff7f0;
   --gv-primary-soft-border: #ffd1b3;
+  /* --- АКЦЕНТЫ --- */
+  --gv-link: rgba(61, 175, 245, 0.95);
+  --gv-available: #bcc662;
+  --gv-success: #bcc662;
+  /* Тёмный вариант для текста на белом (у #bcc662 слишком низкий контраст). */
+  --gv-available-text: #5f7a1e;
+  /* --- ТЕКСТ --- */
   --gv-text: rgba(0, 0, 0, 0.9);
   --gv-text-secondary: rgba(0, 0, 0, 0.55);
   --gv-text-muted: rgba(0, 0, 0, 0.45);
+  /* --- ПОВЕРХНОСТИ --- */
+  --gv-bg-page: #ffffff;
+  --gv-card-bg: #fcfcfc;
+  --gv-surface: #fcfcfc;
+  --gv-sidebar: #fafafa;
+  /* --- ГРАНИЦЫ --- */
   --gv-border: #d9d9d9;
   --gv-border-light: #f0f0f0;
-  --gv-card-bg: #fcfcfc;
-  --gv-sidebar: #fafafa;
-  --gv-link: rgba(61, 175, 245, 0.95);
-  --gv-available: #bcc662;
+  /* --- РАДИУСЫ --- */
   --gv-radius-btn: 15px;
   --gv-radius-card: 16px;
+  --gv-radius-modal: 18px;
+  --gv-radius-input: 15px;
   --gv-radius-chip: 15px;
+  --gv-radius-thumb: 10px;
+  /* --- ТЕНИ --- */
   --gv-shadow-card: 0 8px 28px rgba(0, 0, 0, 0.06);
+  --gv-shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.12);
+  --gv-shadow-sticky: 0 2px 12px rgba(0, 0, 0, 0.06);
+  /* --- ШРИФТЫ --- */
   --gv-font-display: "Nunito", "Montserrat", system-ui, sans-serif;
   --gv-font-body: "Montserrat", system-ui, sans-serif;
 }
@@ -82,6 +101,20 @@ h3 {
   border: 1px solid var(--gv-border-light);
   border-radius: var(--gv-radius-card);
   box-shadow: var(--gv-shadow-card);
+}
+
+/* Модалки: Vuetify rounded="xl" = 28px, нам нужно 18px по спеке. */
+.gv-modal {
+  border-radius: var(--gv-radius-modal) !important;
+}
+
+/* Override радиуса полей outlined под токен 15px (§2.3). */
+.v-field--variant-outlined .v-field__outline__start {
+  border-radius: var(--gv-radius-input) 0 0 var(--gv-radius-input);
+}
+
+.v-field--variant-outlined .v-field__outline__end {
+  border-radius: 0 var(--gv-radius-input) var(--gv-radius-input) 0;
 }
 
 .gv-chip-tag {

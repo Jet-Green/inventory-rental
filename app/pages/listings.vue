@@ -27,7 +27,7 @@ async function resetListings(): Promise<void> {
 }
 
 useSeoMeta({
-  title: "Каталог аренды — gorodaivesi.ru",
+  title: "Каталог аренды — Аренда инвентаря",
   description: "Каталог объявлений аренды оборудования и инвентаря.",
 });
 </script>

@@ -42,20 +42,12 @@ export function useAdminDashboard() {
     }
   }
 
-  async function moderate(
-    listingId: string,
-    status: "active" | "pending" | "rejected" | "hidden",
-  ): Promise<void> {
-    await AdminApi.moderate(listingId, status);
-    await fetchAdminData();
-  }
-
   async function approveOrganizationVerification(
     organizationId: string,
     comment = "",
   ): Promise<void> {
     await AdminApi.approveOrganizationVerification(organizationId, comment);
-    await fetchAdminData();
+    await fetchOrganizationVerificationRequests();
   }
 
   async function rejectOrganizationVerification(
@@ -63,7 +55,7 @@ export function useAdminDashboard() {
     comment = "",
   ): Promise<void> {
     await AdminApi.rejectOrganizationVerification(organizationId, comment);
-    await fetchAdminData();
+    await fetchOrganizationVerificationRequests();
   }
 
   return {
@@ -73,7 +65,6 @@ export function useAdminDashboard() {
     isLoading,
     fetchAdminData,
     fetchOrganizationVerificationRequests,
-    moderate,
     approveOrganizationVerification,
     rejectOrganizationVerification,
   };

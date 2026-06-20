@@ -3,6 +3,7 @@ import CategoryApi from "~/api/CategoryApi";
 import RentalApi from "~/api/RentalApi";
 import { useAuthProfile } from "~/composables/useAuthProfile";
 import { useRole } from "~/composables/useRole";
+import { useUpload } from "~/composables/useUpload";
 import type { ICategory } from "~/types/rental";
 import {
   createDefaultWeekSchedule,
@@ -15,6 +16,7 @@ const router = useRouter();
 const { fetchProfile } = useAuthProfile();
 const { fetchMine } = useMyOrganization();
 const { isBusiness } = useRole();
+const { uploadPhotos, isUploading } = useUpload();
 const categories = ref<ICategory[]>([]);
 const isSubmitting = ref(false);
 const errorMessage = ref("");
@@ -24,7 +26,7 @@ const form = reactive({
   title: "",
   description: "",
   categories: [] as string[],
-  photos: [""],
+  photos: [] as string[],
   pricePerDay: 1000,
   minDays: 1,
   unitsTotal: 1,
@@ -72,7 +74,7 @@ async function submit(): Promise<void> {
       description: form.description,
       categories: form.categories,
       photos: form.photos.filter(Boolean),
-      pricePerDay: form.pricePerDay,
+      pricePerDay: Number(form.pricePerDay),
       minDays: form.minDays,
       unitsTotal: form.unitsTotal,
       pickupType: form.pickupType,
@@ -92,6 +94,14 @@ function nextStep(): void {
 
 function prevStep(): void {
   step.value = Math.max(1, step.value - 1);
+}
+
+/** Загружает выбранные файлы на сервер и добавляет полученные URL в форму. */
+async function onPhotosSelected(files: File[]): Promise<void> {
+  const urls = await uploadPhotos(files);
+  if (urls.length) {
+    form.photos = [...form.photos, ...urls].slice(0, 5);
+  }
 }
 
 const availabilityPreview = computed(() =>
@@ -163,22 +173,15 @@ const availabilityPreview = computed(() =>
     </div>
 
     <div v-show="step === 2" class="max-w-screen-md">
-      <div v-for="(photo, index) in form.photos" :key="index" class="mb-2">
-        <v-text-field
-          v-model="form.photos[index]"
-          :label="`URL фото ${index + 1}`"
-          variant="outlined"
-          rounded="lg"
-          hide-details
-        />
-      </div>
-      <v-btn
-        v-if="form.photos.length < 5"
-        variant="text"
-        @click="form.photos.push('')"
-      >
-        Добавить фото
-      </v-btn>
+      <FileDropzone
+        v-model="form.photos"
+        :uploading="isUploading"
+        :max="5"
+        @files="onPhotosSelected"
+      />
+      <p class="text-caption text-medium-emphasis mt-3 mb-0">
+        До 5 фотографий. Первое фото станет обложкой объявления.
+      </p>
     </div>
 
     <div v-show="step === 3" class="max-w-screen-md">

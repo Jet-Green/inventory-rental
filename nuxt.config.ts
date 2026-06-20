@@ -63,6 +63,7 @@ export default defineNuxtConfig({
             "Сервис аренды инвентаря: спорт, детям, для ОВЗ и походы. Бронирование онлайн с календарем доступности.",
         },
       ],
+      link: [{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }],
     },
     // out-in оставлял старую страницу до конца анимации и при смене layout + Vuetify давал «зависший» вид
     pageTransition: { name: "page" },

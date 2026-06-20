@@ -13,10 +13,15 @@ const {
 } = useRentalCatalog();
 
 const searchLocal = ref("");
+const hasFetchedOnce = ref(false);
 
 onMounted(async () => {
   await fetchCategories();
-  await fetchCatalog({}, 1);
+  try {
+    await fetchCatalog({}, 1);
+  } finally {
+    hasFetchedOnce.value = true;
+  }
 });
 
 watch(
@@ -54,9 +59,16 @@ const activeFiltersCount = computed(() => {
   if (f.dateFrom || f.dateTo) n += 1;
   if (f.pickupType) n += 1;
   if (f.sortBy) n += 1;
+  if (f.unitsNeeded) n += 1;
   if (f.categories?.length) n += 1;
   return n;
 });
+
+const showLoading = computed(() => isLoading.value);
+const showList = computed(() => !isLoading.value && items.value.length > 0);
+const showEmpty = computed(
+  () => !isLoading.value && hasFetchedOnce.value && items.value.length === 0,
+);
 
 async function applySearch(): Promise<void> {
   await fetchCatalog({ ...filters.value, search: searchLocal.value || undefined }, 1);
@@ -91,8 +103,8 @@ async function resetCatalog(): Promise<void> {
 }
 
 useSeoMeta({
-  title: "gorodaivesi.ru — аренда оборудования",
-  description: "Единый каталог аренды на gorodaivesi.ru",
+  title: "Аренда инвентаря — каталог оборудования",
+  description: "Аренда инвентаря: спорт, детям, для ОВЗ и в поход. Бронирование онлайн.",
 });
 </script>
 
@@ -103,10 +115,10 @@ useSeoMeta({
         Найдите оборудование для отдыха и спорта
       </h1>
       <p class="home-catalog__lead mb-6">
-        Единый каталог аренды на gorodaivesi.ru
+        Единый каталог аренды инвентаря: спорт, детям, для ОВЗ и в поход
       </p>
 
-      <div class="d-flex flex-column flex-md-row gap-3 mb-6 align-stretch">
+      <div class="d-flex flex-column flex-md-row ga-3 mb-6 align-stretch">
         <v-text-field
           v-model="searchLocal"
           placeholder="Поиск по названию или категории…"
@@ -117,7 +129,7 @@ useSeoMeta({
           rounded="lg"
           @keyup.enter="applySearch"
         />
-        <div class="d-flex gap-3 flex-shrink-0">
+        <div class="d-flex ga-3 flex-shrink-0">
           <v-btn
             color="primary"
             class="gv-cta"
@@ -147,7 +159,7 @@ useSeoMeta({
       </div>
 
       <v-dialog v-model="filtersDialogOpen" max-width="720" scrollable>
-        <v-card rounded="xl" class="pa-1">
+        <v-card class="pa-1 gv-modal">
           <v-card-title class="text-h6 font-weight-semibold pa-4 pb-2">
             Фильтры
           </v-card-title>
@@ -180,7 +192,7 @@ useSeoMeta({
         </v-card>
       </v-dialog>
 
-      <div v-if="quickTags.length" class="d-flex flex-wrap gap-2 mb-8">
+      <div v-if="quickTags.length" class="d-flex flex-wrap ga-2 mb-8">
         <button
           v-for="tag in quickTags"
           :key="tag.key"
@@ -193,18 +205,18 @@ useSeoMeta({
         </button>
       </div>
 
-      <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
+      <v-progress-linear v-if="showLoading" indeterminate color="primary" class="mb-4" />
 
-      <div v-if="isLoading && !items.length" class="card-grid">
+      <div v-if="showLoading && !items.length" class="card-grid">
         <ListingCardSkeleton v-for="i in 6" :key="i" />
       </div>
 
-      <div v-else-if="items.length" class="card-grid">
+      <div v-else-if="showList" class="card-grid">
         <RentalCard v-for="item in items" :key="item._id" :item="item" to-base="/rental-item" />
       </div>
 
       <EmptyState
-        v-else
+        v-else-if="showEmpty"
         title="Ничего не найдено"
         description="Попробуйте изменить фильтры или поиск."
         action-title="Сбросить"

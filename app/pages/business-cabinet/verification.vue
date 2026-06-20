@@ -7,6 +7,7 @@ definePageMeta({
 
 import { useAuthProfile } from "~/composables/useAuthProfile";
 import { useMyOrganization } from "~/composables/useMyOrganization";
+import type { IDadataCompany } from "~/types/rental";
 
 const route = useRoute();
 const router = useRouter();
@@ -22,20 +23,6 @@ const form = reactive({
   ogrnOrOgrnip: "",
   companyName: "",
   payoutDetails: "",
-});
-
-const statusMeta = computed(() => {
-  const org = organization.value;
-  if (!org) {
-    return { color: "grey" as const, text: "Заявка не отправлена" };
-  }
-  if (org.moderationStatus === "approved") {
-    return { color: "green" as const, text: "Организация подтверждена" };
-  }
-  if (org.moderationStatus === "pending") {
-    return { color: "orange" as const, text: "На проверке у модератора" };
-  }
-  return { color: "red" as const, text: "Отклонена — можно отправить снова" };
 });
 
 const canSubmit = computed(() => {
@@ -57,6 +44,13 @@ watch(
   },
   { immediate: true },
 );
+
+/** Заполняет поля наименованием/ОГРН/ИНН из ответа DaData. */
+function applyDadata(company: IDadataCompany): void {
+  form.inn = company.inn || form.inn;
+  form.ogrnOrOgrnip = company.ogrn || form.ogrnOrOgrnip;
+  form.companyName = company.shortName || company.name || form.companyName;
+}
 
 function fillFormFromOrganization(): void {
   const org = organization.value;
@@ -83,8 +77,9 @@ async function submit(): Promise<void> {
   const companyName = form.companyName.trim();
   const payoutPhone = form.payoutDetails.trim();
 
-  if (!inn || !ogrnOrOgrnip || !companyName || !payoutPhone) {
-    submitError.value = "Заполните все поля перед отправкой.";
+  const needsOgrn = entity.value !== "person";
+  if (!inn || !companyName || !payoutPhone || (needsOgrn && !ogrnOrOgrnip)) {
+    submitError.value = "Заполните все обязательные поля перед отправкой.";
     return;
   }
 
@@ -115,9 +110,12 @@ async function submit(): Promise<void> {
 
     <div class="d-flex align-center ga-3 mb-6">
       <span class="text-body-2">Статус:</span>
-      <v-chip :color="statusMeta.color" size="small">
-        {{ statusMeta.text }}
-      </v-chip>
+      <StatusChip
+        v-if="organization"
+        :status="organization.moderationStatus"
+        type="verification"
+      />
+      <v-chip v-else size="small" variant="tonal">Заявка не отправлена</v-chip>
     </div>
 
     <p
@@ -146,21 +144,30 @@ async function submit(): Promise<void> {
         </v-btn>
       </div>
 
+      <div style="max-width: 480px">
+        <DadataSuggest
+          v-if="entity !== 'person'"
+          v-model="form.inn"
+          label="ИНН (автоподтягивание по DaData)"
+          @apply="applyDadata"
+        />
+        <v-text-field
+          v-else
+          v-model="form.inn"
+          label="ИНН"
+          variant="outlined"
+          rounded="lg"
+          class="mb-3"
+        />
+      </div>
       <v-text-field
-        v-model="form.inn"
-        label="ИНН"
-        variant="outlined"
-        rounded="lg"
-        class="mb-3"
-        style="max-width: 360px"
-      />
-      <v-text-field
+        v-if="entity !== 'person'"
         v-model="form.ogrnOrOgrnip"
-        label="ОГРН / ОГРНИП"
+        :label="entity === 'ip' ? 'ОГРНИП' : 'ОГРН'"
         variant="outlined"
         rounded="lg"
         class="mb-3"
-        style="max-width: 360px"
+        style="max-width: 480px"
       />
       <v-text-field
         v-model="form.companyName"
@@ -195,12 +202,26 @@ async function submit(): Promise<void> {
       </v-btn>
     </template>
 
-    <p v-else-if="organization?.moderationStatus === 'pending'" class="text-body-2 text-medium-emphasis">
-      Заявка на рассмотрении. После одобления откроются разделы кабинета бизнеса.
-    </p>
+    <div
+      v-else-if="organization?.moderationStatus === 'pending'"
+      class="verification-pending rounded-lg pa-4 d-flex align-center ga-3"
+    >
+      <v-icon icon="mdi-clock-outline" size="24" color="warning" />
+      <span class="text-body-2">
+        Заявка на рассмотрении. После одобрения откроются разделы кабинета бизнеса.
+      </span>
+    </div>
     <p v-else-if="organization?.moderationStatus === 'approved'" class="text-body-2 text-medium-emphasis">
       Организация подтверждена.
       <NuxtLink to="/business-cabinet" class="gv-link">Перейти в кабинет</NuxtLink>
     </p>
   </div>
 </template>
+
+<style scoped>
+.verification-pending {
+  background: var(--gv-primary-soft-bg);
+  border: 1px solid var(--gv-primary-soft-border);
+  max-width: 480px;
+}
+</style>

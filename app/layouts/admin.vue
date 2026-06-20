@@ -28,7 +28,10 @@ const sectionTitle = computed(() => {
   <div class="layout-admin d-flex flex-column min-h-100">
     <header class="admin-top border-b">
       <div class="d-flex align-center ga-3 flex-wrap px-5 py-3">
-        <span class="gv-display font-weight-black">gorodaivesi · Админка</span>
+        <NuxtLink to="/" class="text-decoration-none" aria-label="Аренда инвентаря">
+          <AppLogo :size="24" />
+        </NuxtLink>
+        <span class="gv-display font-weight-black text-body-1">· Админка</span>
         <span class="text-primary font-weight-semibold text-caption">{{ sectionTitle }}</span>
         <v-spacer />
         <v-btn variant="text" size="small" to="/">На сайт</v-btn>

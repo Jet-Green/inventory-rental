@@ -1,5 +1,9 @@
 import BookingApi from "~/api/BookingApi";
-import type { IBookingRequest, IBookingResult } from "~/types/rental";
+import type {
+  IBookingRequest,
+  IBookingResult,
+  IContractsResult,
+} from "~/types/rental";
 
 export function useBooking() {
   const isSubmitting = useState<boolean>("booking-submitting", () => false);
@@ -16,9 +20,23 @@ export function useBooking() {
     }
   }
 
+  /** Заглушка оплаты: pending → confirmed (реальный эквайринг позже). */
+  async function payBooking(bookingId: string): Promise<void> {
+    await BookingApi.pay(bookingId);
+    if (lastBooking.value?.bookingId === bookingId) {
+      lastBooking.value = { ...lastBooking.value, status: "confirmed" };
+    }
+  }
+
+  async function fetchContracts(bookingId: string): Promise<IContractsResult> {
+    return BookingApi.contracts(bookingId);
+  }
+
   return {
     isSubmitting,
     lastBooking,
     createBooking,
+    payBooking,
+    fetchContracts,
   };
 }

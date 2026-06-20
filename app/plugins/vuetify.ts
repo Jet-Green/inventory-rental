@@ -32,9 +32,13 @@ export default defineNuxtPlugin((nuxtApp) => {
           dark: false,
           colors: {
             primary: "#ff6600",
-            secondary: "#1f2937",
+            secondary: "#3daff5",
+            success: "#bcc662",
             background: "#ffffff",
-            surface: "#ffffff",
+            surface: "#fcfcfc",
+          },
+          variables: {
+            "border-radius-root": "15px",
           },
         },
       },

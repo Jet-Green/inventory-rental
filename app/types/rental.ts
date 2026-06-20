@@ -28,9 +28,18 @@ export interface IRentalListing {
   pickupAddress?: string;
   deliveryZone?: string;
   calendar: IAvailabilityRange[];
-  ownerId: string;
-  moderationStatus: "active" | "pending" | "rejected" | "hidden";
+  ownerId: string | { _id: string; fullName?: string; phone?: string };
+  rejectionReason?: string;
+  moderationStatus: ListingStatus;
 }
+
+export type ListingStatus = "draft" | "active" | "pending" | "rejected" | "hidden";
+export type BookingStatus =
+  | "pending"
+  | "confirmed"
+  | "active"
+  | "completed"
+  | "cancelled";
 
 export interface ICatalogFilters {
   categories?: string[];
@@ -61,18 +70,45 @@ export interface IBookingRequest {
 
 export interface IBookingResult {
   bookingId: string;
+  status: BookingStatus;
+  days?: number;
+  pricePerDay?: number;
+  totalPrice?: number;
+  agentCommission?: number;
   rentalAgreementPdfUrl: string;
   agencyAgreementPdfUrl: string;
-  status: "pending" | "confirmed" | "cancelled";
+}
+
+export interface IBookingRenterSnippet {
+  _id: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
 }
 
 export interface IBookingItem {
   _id: string;
   listingId: IRentalListing;
+  renterId?: IBookingRenterSnippet | string;
   dateFrom: string;
   dateTo: string;
   units: number;
-  status: "pending" | "confirmed" | "cancelled";
+  days?: number;
+  pricePerDay?: number;
+  totalPrice?: number;
+  agentCommission?: number;
+  status: BookingStatus;
+  rentalAgreementPdfUrl: string;
+  agencyAgreementPdfUrl: string;
+}
+
+export interface IPayResult {
+  bookingId: string;
+  status: "confirmed";
+  paid: boolean;
+}
+
+export interface IContractsResult {
   rentalAgreementPdfUrl: string;
   agencyAgreementPdfUrl: string;
 }
@@ -103,6 +139,44 @@ export interface IOrganization {
   moderationStatus: "pending" | "approved" | "rejected";
   moderatorComment?: string;
   orgManagers?: IOrganizationManagerSnippet[] | string[];
+}
+
+/** Полная категория (админка), включая icon/order — формат backend Category. */
+export interface ICategoryFull extends ICategory {
+  icon?: string;
+  order: number;
+}
+
+export interface IUploadResult {
+  urls: string[];
+  storage: "cloud" | "local";
+}
+
+/** Компания из проксирования DaData по ИНН. */
+export interface IDadataCompany {
+  inn: string;
+  ogrn: string;
+  name: string;
+  shortName?: string;
+  address: string;
+  kpp?: string | null;
+  type?: string;
+  raw?: Record<string, unknown>;
+}
+
+/** Пользователь в админ-таблице (агрегаты по объявлениям/броням). */
+export interface IAdminUser {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  roles: UserRole[];
+  isBlocked: boolean;
+  isRenterVerified: boolean;
+  organizationStatus: "pending" | "approved" | "rejected" | "none";
+  listingsCount: number;
+  bookingsCount: number;
+  createdAt?: string;
 }
 
 /** Профиль пользователя (реквизиты организации — в коллекции organizations). */

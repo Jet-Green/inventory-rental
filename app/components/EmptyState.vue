@@ -17,12 +17,30 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <v-card class="pa-6 text-center" rounded="lg" variant="tonal">
+  <div class="gv-empty pa-8 text-center">
     <div class="text-h6 font-weight-bold mb-2">{{ title }}</div>
-    <div v-if="description" class="text-muted mb-4">{{ description }}</div>
-    <v-btn v-if="actionTitle" color="primary" class="action-btn" @click="emit('action')">
+    <div v-if="description" class="gv-empty__desc mb-5">{{ description }}</div>
+    <v-btn
+      v-if="actionTitle"
+      color="primary"
+      class="gv-cta"
+      rounded="lg"
+      @click="emit('action')"
+    >
       {{ actionTitle }}
     </v-btn>
-  </v-card>
+  </div>
 </template>
 
+<style scoped>
+.gv-empty {
+  background: var(--gv-card-bg);
+  border: 1px dashed var(--gv-border);
+  border-radius: var(--gv-radius-card);
+}
+
+.gv-empty__desc {
+  font-size: 14px;
+  color: var(--gv-text-secondary);
+}
+</style>

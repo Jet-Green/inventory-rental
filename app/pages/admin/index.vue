@@ -24,6 +24,14 @@ onMounted(() => {
 const pendingModeration = computed(() =>
   (listings.value || []).filter((l) => l.moderationStatus === "pending").slice(0, 4),
 );
+
+function managersLine(managers: unknown): string {
+  if (!Array.isArray(managers) || !managers.length) return "—";
+  return managers
+    .map((m) => (typeof m === "string" ? m : m?.email || m?._id))
+    .filter(Boolean)
+    .join(", ");
+}
 </script>
 
 <template>
@@ -33,26 +41,28 @@ const pendingModeration = computed(() =>
 
     <v-row class="mb-4">
       <v-col cols="12" md="4">
-        <div class="gv-card-elevated pa-4">
-          <p class="text-body-2 font-weight-semibold mb-1">
-            Модерация: {{ dashboard.listingsStats?.pending ?? 0 }}
-          </p>
-          <p class="text-caption" style="color: var(--gv-link)">+4% к вчера</p>
-        </div>
+        <StatCard
+          label="Объявлений на модерации"
+          :value="dashboard.listingsStats?.pending ?? 0"
+          icon="mdi-eye-check-outline"
+          delta="Очередь модерации"
+        />
       </v-col>
       <v-col cols="12" md="4">
-        <div class="gv-card-elevated pa-4">
-          <p class="text-body-2 font-weight-semibold mb-1">
-            Новые пользователи: {{ dashboard.usersCount ?? 0 }}
-          </p>
-          <p class="text-caption" style="color: var(--gv-link)">+4% к вчера</p>
-        </div>
+        <StatCard
+          label="Всего пользователей"
+          :value="dashboard.usersCount ?? 0"
+          icon="mdi-account-plus"
+          delta="Зарегистрировано"
+        />
       </v-col>
       <v-col cols="12" md="4">
-        <div class="gv-card-elevated pa-4">
-          <p class="text-body-2 font-weight-semibold mb-1">Брони за сутки: 26</p>
-          <p class="text-caption" style="color: var(--gv-link)">+4% к вчера</p>
-        </div>
+        <StatCard
+          label="Опубликованных объявлений"
+          :value="dashboard.listingsStats?.active ?? 0"
+          icon="mdi-calendar-check"
+          delta="Активны в каталоге"
+        />
       </v-col>
     </v-row>
 
@@ -112,12 +122,8 @@ const pendingModeration = computed(() =>
           <tr v-for="org in organizationVerificationRequests" :key="org._id">
             <td>{{ org.companyName || "—" }}</td>
             <td>{{ org.inn || "—" }}</td>
-            <td>
-              {{
-                org.orgManagers?.map((m) => m.email).join(", ") || "—"
-              }}
-            </td>
-            <td>{{ org.moderationStatus }}</td>
+            <td>{{ managersLine(org.orgManagers) }}</td>
+            <td><StatusChip :status="org.moderationStatus" type="verification" /></td>
             <td>
               <div class="d-flex ga-2 flex-wrap">
                 <v-btn
