@@ -62,6 +62,7 @@ const filteredDocuments = computed(() => {
 
 <template>
   <div class="px-4 px-sm-6 py-8">
+    <span class="gv-sign-eyebrow mb-3">ДОКУМЕНТЫ</span>
     <div class="d-flex flex-wrap align-center justify-space-between ga-4 mb-4">
       <h1 class="gv-display text-h4">Документы</h1>
     </div>

@@ -31,7 +31,7 @@ useSeoMeta({ title: "Бронь оформлена — Аренда инвент
       <div class="gv-card-elevated pa-8 mx-auto success-page__card">
         <v-icon icon="mdi-check-circle" size="48" color="success" class="mb-3" />
         <h1 class="gv-display text-h5 mb-3">Бронь успешно оформлена</h1>
-        <p class="font-weight-semibold mb-4" style="color: rgba(0,0,0,0.75)">
+        <p class="font-weight-semibold mb-4" style="color: var(--gv-text-secondary)">
           Номер брони: {{ displayId }}
         </p>
         <div class="text-body-2 text-medium-emphasis d-flex flex-column ga-2 mb-5">
@@ -43,7 +43,7 @@ useSeoMeta({ title: "Бронь оформлена — Аренда инвент
           <p v-if="totalLabel" class="mb-0">Сумма: {{ totalLabel }}</p>
         </div>
 
-        <div class="success-page__docs rounded-lg pa-4 mb-5">
+        <div class="success-page__docs pa-4 mb-5">
           <p class="font-weight-semibold mb-2">Документы</p>
           <a
             v-if="lastBooking.rentalAgreementPdfUrl"
@@ -76,7 +76,6 @@ useSeoMeta({ title: "Бронь оформлена — Аренда инвент
           block
           color="primary"
           class="gv-cta"
-          rounded="lg"
           to="/renter-cabinet/rentals"
         >
           Перейти в кабинет
@@ -92,7 +91,8 @@ useSeoMeta({ title: "Бронь оформлена — Аренда инвент
 }
 
 .success-page__docs {
-  background: #f5f8f0;
-  border: 1px solid #d4e09a;
+  background: var(--gv-available-soft-bg);
+  border: 1px solid var(--gv-available-soft-border);
+  border-radius: var(--gv-radius-card);
 }
 </style>

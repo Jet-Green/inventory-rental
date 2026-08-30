@@ -65,7 +65,6 @@ useSeoMeta({
         variant="outlined"
         color="primary"
         class="gv-cta"
-        rounded="lg"
         :loading="isLoading"
         @click="loadMore"
       >

@@ -136,9 +136,10 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
 
 <template>
   <div class="px-4 px-sm-6 py-6">
+    <span class="gv-sign-eyebrow mb-3">ОБЪЯВЛЕНИЯ</span>
     <div class="d-flex flex-wrap align-center justify-space-between ga-4 mb-4">
       <h1 class="gv-display text-h4">Мои объявления</h1>
-      <v-btn to="/business-cabinet/listings/new" color="primary" class="gv-cta" rounded="lg">
+      <v-btn to="/business-cabinet/listings/new" color="primary" class="gv-cta">
         Добавить объявление
       </v-btn>
     </div>
@@ -165,7 +166,7 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
         class="gv-card-elevated pa-4 d-flex flex-wrap ga-4 align-center"
       >
         <div
-          class="listing-row__img rounded-lg"
+          class="listing-row__img"
           :style="
             item.photos?.[0]
               ? { backgroundImage: `url(${item.photos[0]})` }
@@ -193,7 +194,6 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
             variant="outlined"
             color="primary"
             class="gv-cta"
-            rounded="lg"
             size="small"
             :to="`/rental-item/${item._id}`"
             target="_blank"
@@ -204,7 +204,6 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
             variant="outlined"
             color="primary"
             class="gv-cta"
-            rounded="lg"
             size="small"
             @click="openEdit(item)"
           >
@@ -215,7 +214,6 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
             variant="outlined"
             color="primary"
             class="gv-cta"
-            rounded="lg"
             size="small"
             :loading="actingId === item._id"
             @click="onSubmitModeration(item._id)"
@@ -227,7 +225,6 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
             variant="outlined"
             color="primary"
             class="gv-cta"
-            rounded="lg"
             size="small"
             :loading="actingId === item._id"
             @click="onToggleVisibility(item)"
@@ -237,7 +234,6 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
           <v-btn
             color="primary"
             class="gv-cta"
-            rounded="lg"
             size="small"
             to="/business-cabinet/calendar"
           >
@@ -247,7 +243,6 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
             variant="outlined"
             color="error"
             class="gv-cta"
-            rounded="lg"
             size="small"
             :loading="actingId === item._id"
             @click="openDelete(item._id, item.title)"
@@ -274,7 +269,6 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
             v-model="editForm.title"
             label="Название"
             variant="outlined"
-            rounded="lg"
             class="mb-3"
             hide-details
           />
@@ -282,7 +276,6 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
             v-model="editForm.description"
             label="Описание"
             variant="outlined"
-            rounded="lg"
             rows="3"
             class="mb-3"
             hide-details
@@ -296,7 +289,6 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
             multiple
             chips
             variant="outlined"
-            rounded="lg"
             class="mb-3"
             hide-details
           />
@@ -306,7 +298,6 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
               label="Цена за день, ₽"
               type="number"
               variant="outlined"
-              rounded="lg"
               hide-details
               style="min-width: 140px"
             />
@@ -315,7 +306,6 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
               label="Мин. срок, дней"
               type="number"
               variant="outlined"
-              rounded="lg"
               hide-details
               style="min-width: 140px"
             />
@@ -324,7 +314,6 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
               label="Кол-во единиц"
               type="number"
               variant="outlined"
-              rounded="lg"
               hide-details
               style="min-width: 140px"
             />
@@ -340,7 +329,6 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
             item-value="value"
             label="Способ получения"
             variant="outlined"
-            rounded="lg"
             class="mb-3"
             hide-details
           />
@@ -349,7 +337,6 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
             v-model="editForm.pickupAddress"
             label="Адрес самовывоза"
             variant="outlined"
-            rounded="lg"
             class="mb-3"
             hide-details
           />
@@ -358,7 +345,6 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
             v-model="editForm.deliveryZone"
             label="Зона доставки"
             variant="outlined"
-            rounded="lg"
             hide-details
           />
           <p class="text-caption text-medium-emphasis mt-3 mb-0">
@@ -368,11 +354,10 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
         </v-card-text>
         <v-card-actions class="pa-4 pt-0">
           <v-spacer />
-          <v-btn variant="text" rounded="lg" @click="editDialogOpen = false">Отмена</v-btn>
+          <v-btn variant="text" class="action-btn" @click="editDialogOpen = false">Отмена</v-btn>
           <v-btn
             color="primary"
             class="gv-cta"
-            rounded="lg"
             :loading="actingId === editTargetId"
             @click="saveEdit"
           >
@@ -390,11 +375,10 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
         </v-card-text>
         <v-card-actions class="pa-4 pt-0">
           <v-spacer />
-          <v-btn variant="text" rounded="lg" @click="deleteDialogOpen = false">Отмена</v-btn>
+          <v-btn variant="text" class="action-btn" @click="deleteDialogOpen = false">Отмена</v-btn>
           <v-btn
             color="error"
             class="gv-cta"
-            rounded="lg"
             :loading="!!actingId"
             @click="confirmDelete"
           >
@@ -410,7 +394,8 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
 .listing-row__img {
   width: 140px;
   height: 100px;
-  background: #e8e8e8;
+  background: var(--gv-border-light);
+  border-radius: var(--gv-radius-thumb);
   background-size: cover;
   background-position: center;
   flex-shrink: 0;

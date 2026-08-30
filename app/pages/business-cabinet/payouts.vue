@@ -56,6 +56,7 @@ function renterLine(b: IBookingItem): string {
 
 <template>
   <div class="px-4 px-sm-6 py-8">
+    <span class="gv-sign-eyebrow mb-3">ВЫПЛАТЫ</span>
     <h1 class="gv-display text-h4 mb-2">Выплаты</h1>
     <p class="text-body-2 text-medium-emphasis mb-6">
       Расчёты проходят через платформу-агента. Реальный вывод средств подключается

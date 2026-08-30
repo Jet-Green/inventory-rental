@@ -140,8 +140,8 @@ function openPlaceListing(): void {
 
 <style scoped>
 .gv-header {
-  background: #fff;
-  border-bottom: 1px solid #f5f5f5;
+  background: var(--gv-card-bg);
+  border-bottom: 1px solid var(--gv-border-light);
 }
 
 .gv-header__inner {

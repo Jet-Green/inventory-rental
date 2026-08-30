@@ -61,11 +61,11 @@ function formatDateRu(dateIso?: string): string {
       <v-menu v-model="dateFromMenu" :close-on-content-click="false">
         <template #activator="{ props: menuProps }">
           <v-text-field v-bind="menuProps" :model-value="formatDateRu(modelValue.dateFrom)" label="Дата аренды · с"
-            density="comfortable" variant="outlined" hide-details class="gv-filters__field" rounded="lg" readonly
+            density="comfortable" variant="outlined" hide-details class="gv-filters__field" readonly
             clearable prepend-inner-icon="mdi-calendar-month-outline"
             @click:clear="updateField('dateFrom', undefined)" />
         </template>
-        <v-card>
+        <v-card class="gv-modal">
           <v-date-picker :model-value="modelValue.dateFrom || undefined" color="primary" show-adjacent-months
             @update:model-value="updateField('dateFrom', normalizePickerDate($event) || undefined)" />
         </v-card>
@@ -73,10 +73,10 @@ function formatDateRu(dateIso?: string): string {
       <v-menu v-model="dateToMenu" :close-on-content-click="false">
         <template #activator="{ props: menuProps }">
           <v-text-field v-bind="menuProps" :model-value="formatDateRu(modelValue.dateTo)" label="по"
-            density="comfortable" variant="outlined" hide-details class="gv-filters__field" rounded="lg" readonly
+            density="comfortable" variant="outlined" hide-details class="gv-filters__field" readonly
             clearable prepend-inner-icon="mdi-calendar-month-outline" @click:clear="updateField('dateTo', undefined)" />
         </template>
-        <v-card>
+        <v-card class="gv-modal">
           <v-date-picker :model-value="modelValue.dateTo || undefined" :min="modelValue.dateFrom || undefined"
             color="primary" show-adjacent-months
             @update:model-value="updateField('dateTo', normalizePickerDate($event) || undefined)" />
@@ -87,27 +87,27 @@ function formatDateRu(dateIso?: string): string {
         { title: 'Доставка', value: 'delivery' },
         { title: 'Оба варианта', value: 'both' },
       ]" item-title="title" item-value="value" label="Способ получения" density="comfortable" variant="outlined"
-        hide-details clearable class="gv-filters__field gv-filters__field--wide" rounded="lg"
+        hide-details clearable class="gv-filters__field gv-filters__field--wide"
         @update:model-value="updateField('pickupType', $event as ICatalogFilters['pickupType'])" />
       <v-text-field :model-value="modelValue.unitsNeeded ?? null" label="Нужно единиц" type="number" :min="1"
-        density="comfortable" variant="outlined" hide-details clearable class="gv-filters__field" rounded="lg"
+        density="comfortable" variant="outlined" hide-details clearable class="gv-filters__field"
         @update:model-value="updateField('unitsNeeded', $event ? Number($event) : undefined)" />
       <v-select :model-value="modelValue.categories || []" :items="categories" item-title="name" item-value="key"
         label="Категории" density="comfortable" variant="outlined" hide-details multiple chips closable-chips
-        class="gv-filters__field gv-filters__field--grow" rounded="lg"
+        class="gv-filters__field gv-filters__field--grow"
         @update:model-value="updateField('categories', ($event as string[])?.length ? $event : undefined)" />
-      <v-btn v-if="showApplyButton" color="primary" class="gv-cta" rounded="lg" height="48" :loading="loading"
+      <v-btn v-if="showApplyButton" color="primary" class="gv-cta" height="48" :loading="loading"
         @click="emit('apply')">
         Применить
       </v-btn>
     </div>
 
     <div class="gv-filters__sort d-flex align-center ga-2 mt-3">
-      <v-btn size="default" rounded="pill" :variant="modelValue.sortBy === 'priceAsc' ? 'flat' : 'outlined'"
+      <v-btn size="default" class="action-btn" :variant="modelValue.sortBy === 'priceAsc' ? 'flat' : 'outlined'"
         :color="modelValue.sortBy === 'priceAsc' ? 'primary' : undefined" @click="toggleSort('priceAsc')">
         Сначала дешевле
       </v-btn>
-      <v-btn size="default" rounded="pill" :variant="modelValue.sortBy === 'priceDesc' ? 'flat' : 'outlined'"
+      <v-btn size="default" class="action-btn" :variant="modelValue.sortBy === 'priceDesc' ? 'flat' : 'outlined'"
         :color="modelValue.sortBy === 'priceDesc' ? 'primary' : undefined" @click="toggleSort('priceDesc')">
         Сначала дороже
       </v-btn>

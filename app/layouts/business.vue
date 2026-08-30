@@ -34,28 +34,28 @@ function isActive(path: string): boolean {
           <span class="text-primary font-weight-semibold text-caption">Кабинет бизнеса</span>
           <a
             href="#"
-            class="text-caption px-3 py-2 rounded-lg cabinet-header__pill text-decoration-none"
+            class="text-caption px-3 py-2 cabinet-header__pill text-decoration-none"
             @click.prevent="void openCabinetSelect()"
           >
             Сменить кабинет
           </a>
         </div>
         <div class="d-flex align-center ga-2 flex-wrap">
-          <v-btn to="/business-cabinet/listings/new" color="primary" class="gv-cta" rounded="lg">
+          <v-btn to="/business-cabinet/listings/new" color="primary" class="gv-cta">
             Добавить объявление
           </v-btn>
-          <v-btn to="/business-cabinet/profile" variant="outlined" color="primary" class="gv-cta" rounded="lg">
+          <v-btn to="/business-cabinet/profile" variant="outlined" color="primary" class="gv-cta">
             Профиль
           </v-btn>
-          <v-btn variant="text" @click="auth.logout">Выйти</v-btn>
+          <v-btn variant="text" class="action-btn" @click="auth.logout">Выйти</v-btn>
         </div>
       </div>
     </header>
 
     <div v-if="!isBusiness" class="gv-page-wide px-4 px-sm-6 py-4">
-      <div class="business-banner d-flex flex-wrap align-center justify-space-between ga-3 pa-4 rounded-lg">
+      <div class="business-banner d-flex flex-wrap align-center justify-space-between ga-3 pa-4">
         <span class="text-body-2 font-weight-semibold">Для публикации объявлений пройдите верификацию</span>
-        <v-btn to="/business-cabinet/verification" color="primary" class="gv-cta" rounded="lg">
+        <v-btn to="/business-cabinet/verification" color="primary" class="gv-cta">
           Пройти верификацию
         </v-btn>
       </div>
@@ -68,14 +68,14 @@ function isActive(path: string): boolean {
             v-for="item in nav"
             :key="item.to"
             :to="item.to"
-            class="cabinet-nav-link d-block text-decoration-none pa-3 rounded-lg mb-1"
+            class="cabinet-nav-link d-block text-decoration-none pa-3 mb-1"
             :class="{ 'cabinet-nav-link--active': isActive(item.to) }"
           >
             {{ item.title }}
           </NuxtLink>
         </nav>
       </aside>
-      <v-main class="cabinet-shell__main bg-white flex-grow-1">
+      <v-main class="cabinet-shell__main flex-grow-1">
         <slot />
       </v-main>
     </div>
@@ -84,11 +84,11 @@ function isActive(path: string): boolean {
 
 <style scoped>
 .border-b {
-  border-bottom: 1px solid #f0f0f0 !important;
+  border-bottom: 1px solid var(--gv-border-light) !important;
 }
 
 .border-e {
-  border-right: 1px solid #f0f0f0 !important;
+  border-right: 1px solid var(--gv-border-light) !important;
 }
 
 .cabinet-header__row {
@@ -102,12 +102,19 @@ function isActive(path: string): boolean {
 
 .cabinet-header__pill {
   background: var(--gv-primary-soft-bg);
-  color: rgba(0, 0, 0, 0.65);
+  border: 1px solid var(--gv-primary-soft-border);
+  border-radius: var(--gv-radius-btn);
+  color: var(--gv-text-secondary);
 }
 
 .business-banner {
   background: var(--gv-primary-soft-bg);
   border: 1px solid var(--gv-primary-soft-border);
+  border-radius: var(--gv-radius-card);
+}
+
+.cabinet-shell__main {
+  background: var(--gv-bg-page);
 }
 
 .cabinet-shell__nav {
@@ -118,7 +125,8 @@ function isActive(path: string): boolean {
 }
 
 .cabinet-nav-link {
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--gv-text-secondary);
+  border-radius: var(--gv-radius-btn);
   font-size: 14px;
 }
 

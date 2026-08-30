@@ -120,7 +120,7 @@ const availabilityPreview = computed(() =>
         v-for="s in steps"
         :key="s.n"
         type="button"
-        class="step-pill text-caption px-3 py-2 rounded-lg border"
+        class="step-pill text-caption px-3 py-2 border"
         :class="step === s.n ? 'step-pill--active' : 'step-pill--idle'"
         @click="step = s.n"
       >
@@ -146,7 +146,6 @@ const availabilityPreview = computed(() =>
         v-model="form.title"
         placeholder="Название оборудования"
         variant="outlined"
-        rounded="lg"
         class="mb-3"
         hide-details
       />
@@ -154,7 +153,6 @@ const availabilityPreview = computed(() =>
         v-model="form.description"
         placeholder="Описание (кратко)"
         variant="outlined"
-        rounded="lg"
         class="mb-3"
         hide-details
         rows="3"
@@ -168,7 +166,6 @@ const availabilityPreview = computed(() =>
         multiple
         chips
         variant="outlined"
-        rounded="lg"
       />
     </div>
 
@@ -190,7 +187,6 @@ const availabilityPreview = computed(() =>
         label="Цена за день"
         type="number"
         variant="outlined"
-        rounded="lg"
         class="mb-3"
       />
       <v-text-field
@@ -198,7 +194,6 @@ const availabilityPreview = computed(() =>
         label="Минимальный срок (дней)"
         type="number"
         variant="outlined"
-        rounded="lg"
         class="mb-3"
       />
       <v-text-field
@@ -206,7 +201,6 @@ const availabilityPreview = computed(() =>
         label="Количество единиц"
         type="number"
         variant="outlined"
-        rounded="lg"
       />
     </div>
 
@@ -222,21 +216,18 @@ const availabilityPreview = computed(() =>
         item-value="value"
         label="Способ получения"
         variant="outlined"
-        rounded="lg"
         class="mb-3"
       />
       <v-text-field
         v-model="form.pickupAddress"
         label="Адрес самовывоза"
         variant="outlined"
-        rounded="lg"
         class="mb-3"
       />
       <v-text-field
         v-model="form.deliveryZone"
         label="Зона доставки"
         variant="outlined"
-        rounded="lg"
       />
     </div>
 
@@ -260,22 +251,27 @@ const availabilityPreview = computed(() =>
     </div>
 
     <div class="d-flex flex-wrap ga-3 mt-6">
-      <v-btn variant="outlined" color="primary" class="gv-cta" rounded="lg" @click="prevStep">
+      <v-btn
+        variant="outlined"
+        color="primary"
+        class="gv-cta"
+        :disabled="step === 1"
+        @click="prevStep"
+      >
         Назад
       </v-btn>
       <v-btn
         v-if="step < 6"
         color="primary"
         class="gv-cta"
-        rounded="lg"
         @click="nextStep"
       >
         Далее
       </v-btn>
       <v-btn
+        v-else
         color="primary"
         class="gv-cta"
-        rounded="lg"
         :loading="isSubmitting"
         @click="submit"
       >
@@ -290,9 +286,10 @@ const availabilityPreview = computed(() =>
 <style scoped>
 .step-pill {
   cursor: pointer;
-  background: #fafafa;
-  border-color: #e8e8e8 !important;
-  color: rgba(0, 0, 0, 0.45);
+  background: var(--gv-bg-page);
+  border-radius: var(--gv-radius-btn);
+  border-color: var(--gv-border-light) !important;
+  color: var(--gv-text-muted);
 }
 
 .step-pill--active {

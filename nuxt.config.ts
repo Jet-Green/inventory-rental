@@ -26,6 +26,7 @@ export default defineNuxtConfig({
         families: {
           Montserrat: [300, 400, 500, 600, 700, 800, 900],
           Nunito: [600, 700, 800, 900],
+          Caveat: [600, 700],
         },
         display: "swap",
       },

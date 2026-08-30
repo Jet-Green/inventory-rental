@@ -21,6 +21,7 @@ function listingIdOf(listingId: unknown): string {
 
 <template>
   <div class="px-4 px-sm-6 py-8">
+    <span class="gv-sign-eyebrow mb-3">МОИ АРЕНДЫ</span>
     <h1 class="gv-display text-h4 mb-6">Мои аренды</h1>
     <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
 
@@ -54,7 +55,6 @@ function listingIdOf(listingId: unknown): string {
           variant="outlined"
           color="primary"
           class="gv-cta"
-          rounded="lg"
           size="small"
         >
           Подробнее

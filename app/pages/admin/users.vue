@@ -81,6 +81,7 @@ async function confirmBlock(): Promise<void> {
 
 <template>
   <div class="px-5 py-6">
+    <span class="gv-sign-eyebrow mb-3">ПОЛЬЗОВАТЕЛИ</span>
     <h1 class="gv-display text-h4 mb-2">Пользователи</h1>
     <p class="text-body-2 text-medium-emphasis mb-4">
       Все пользователи платформы с агрегатами по объявлениям и броням.
@@ -117,7 +118,7 @@ async function confirmBlock(): Promise<void> {
 
     <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
 
-    <div class="gv-card-elevated overflow-hidden rounded-lg admin-users-table">
+    <div class="gv-card-elevated overflow-hidden admin-users-table">
       <v-table>
         <thead>
           <tr>
@@ -201,11 +202,10 @@ async function confirmBlock(): Promise<void> {
         </v-card-text>
         <v-card-actions class="pa-4 pt-0">
           <v-spacer />
-          <v-btn variant="text" rounded="lg" @click="blockDialogOpen = false">Отмена</v-btn>
+          <v-btn variant="text" class="action-btn" @click="blockDialogOpen = false">Отмена</v-btn>
           <v-btn
             :color="blockTarget?.isBlocked ? 'success' : 'error'"
             class="gv-cta"
-            rounded="lg"
             :loading="isActing"
             @click="confirmBlock"
           >
@@ -221,8 +221,9 @@ async function confirmBlock(): Promise<void> {
 .admin-users-table :deep(th) {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.55);
-  background: #f5f5f5;
+  color: var(--gv-text-secondary);
+  background: var(--gv-bg-page);
+  border-bottom: 1px solid var(--gv-border-light);
   white-space: nowrap;
 }
 

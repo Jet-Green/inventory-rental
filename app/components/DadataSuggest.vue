@@ -41,7 +41,6 @@ function applyCompany(): void {
       :model-value="modelValue"
       :label="label"
       variant="outlined"
-      rounded="lg"
       :loading="isLoading"
       inputmode="numeric"
       @update:model-value="onInput"
@@ -68,7 +67,7 @@ function applyCompany(): void {
       {{ error }}
     </v-alert>
 
-    <div v-if="company" class="dadata__result rounded-lg pa-4 mb-3">
+    <div v-if="company" class="dadata__result pa-4 mb-3">
       <p class="font-weight-semibold mb-1">
         Найдено: {{ company.shortName || company.name }}
       </p>
@@ -78,7 +77,6 @@ function applyCompany(): void {
         variant="outlined"
         color="primary"
         class="gv-cta"
-        rounded="lg"
         size="small"
         @click="applyCompany"
       >
@@ -94,7 +92,8 @@ function applyCompany(): void {
 }
 
 .dadata__result {
-  background: #f0f7e0;
-  border: 1px solid #d4e09a;
+  background: var(--gv-available-soft-bg);
+  border: 1px solid var(--gv-available-soft-border);
+  border-radius: var(--gv-radius-card);
 }
 </style>

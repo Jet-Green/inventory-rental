@@ -35,7 +35,7 @@ function goBusinessCabinet(): void {
       <v-card-text class="pt-0">
         <v-row class="ga-4">
           <v-col cols="12" sm="6">
-            <div class="gv-card-elevated pa-5 h-100 d-flex flex-column rounded-lg">
+            <div class="gv-card-elevated pa-5 h-100 d-flex flex-column">
               <v-icon icon="mdi-account-outline" size="32" color="primary" class="mb-2" />
               <h3 class="gv-display text-subtitle-1 mb-2">Личный кабинет</h3>
               <p class="text-body-2 text-medium-emphasis mb-4 flex-grow-1">
@@ -45,7 +45,6 @@ function goBusinessCabinet(): void {
                 color="primary"
                 block
                 class="gv-cta"
-                rounded="lg"
                 @click="goPersonalCabinet"
               >
                 Войти
@@ -56,7 +55,7 @@ function goBusinessCabinet(): void {
             </div>
           </v-col>
           <v-col cols="12" sm="6">
-            <div class="gv-card-elevated pa-5 h-100 d-flex flex-column rounded-lg">
+            <div class="gv-card-elevated pa-5 h-100 d-flex flex-column">
               <v-icon icon="mdi-store-outline" size="32" color="primary" class="mb-2" />
               <h3 class="gv-display text-subtitle-1 mb-2">Кабинет бизнеса</h3>
               <p class="text-body-2 text-medium-emphasis mb-4 flex-grow-1">
@@ -66,7 +65,6 @@ function goBusinessCabinet(): void {
                 color="primary"
                 block
                 class="gv-cta"
-                rounded="lg"
                 @click="goBusinessCabinet"
               >
                 Войти
@@ -80,7 +78,7 @@ function goBusinessCabinet(): void {
       </v-card-text>
 
       <v-card-actions class="justify-end px-4 pb-4 pt-0">
-        <v-btn variant="text" rounded="lg" @click="close">Закрыть</v-btn>
+        <v-btn variant="text" class="action-btn" @click="close">Закрыть</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

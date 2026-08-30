@@ -61,6 +61,7 @@ const filteredDocuments = computed(() => {
 
 <template>
   <div class="px-4 px-sm-6 py-8">
+    <span class="gv-sign-eyebrow mb-3">ДОКУМЕНТЫ</span>
     <h1 class="gv-display text-h4 mb-4">Документы</h1>
 
     <v-chip-group v-model="typeFilter" mandatory class="mb-4">

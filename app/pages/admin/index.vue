@@ -46,6 +46,7 @@ function managersLine(managers: unknown): string {
 
 <template>
   <div class="px-5 py-6">
+    <span class="gv-sign-eyebrow mb-3">ОБЗОР</span>
     <h1 class="gv-display text-h4 mb-6">Дашборд</h1>
     <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
 
@@ -124,7 +125,7 @@ function managersLine(managers: unknown): string {
       </v-col>
     </v-row>
 
-    <v-card class="pa-4 mt-8 rounded-lg" variant="outlined">
+    <v-card class="pa-4 mt-8 gv-card-elevated" flat>
       <h3 class="text-h6 mb-3">Верификация организаций</h3>
       <v-table>
         <thead>
@@ -148,6 +149,7 @@ function managersLine(managers: unknown): string {
                   size="small"
                   variant="outlined"
                   color="success"
+                  class="action-btn"
                   @click="approveOrganizationVerification(org._id)"
                 >
                   Подтвердить
@@ -156,6 +158,7 @@ function managersLine(managers: unknown): string {
                   size="small"
                   variant="outlined"
                   color="error"
+                  class="action-btn"
                   @click="rejectOrganizationVerification(org._id, 'Требуются уточнения')"
                 >
                   Отклонить

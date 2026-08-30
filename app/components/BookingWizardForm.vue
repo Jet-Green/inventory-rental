@@ -560,8 +560,9 @@ async function pay(): Promise<void> {
 <template>
   <div class="booking-wizard px-4 px-sm-6 py-6 gv-page-wide">
     <div class="d-flex flex-wrap align-center ga-3 mb-2">
-      <v-btn variant="text" color="primary" size="small" :to="`/rental-item/${listingId}`">
-        ← К объявлению
+      <v-btn variant="text" color="primary" size="small" class="action-btn" prepend-icon="mdi-arrow-left"
+        :to="`/rental-item/${listingId}`">
+        К объявлению
       </v-btn>
     </div>
 
@@ -574,7 +575,7 @@ async function pay(): Promise<void> {
 
     <template v-if="currentListing">
       <div class="d-flex flex-wrap ga-2 mb-6">
-        <button v-for="s in steps" :key="s.n" type="button" class="step-pill text-caption px-3 py-2 rounded-lg border"
+        <button v-for="s in steps" :key="s.n" type="button" class="step-pill text-caption px-3 py-2 border"
           :class="step === s.n ? 'step-pill--active' : 'step-pill--idle'" @click="goToStep(s.n)">
           {{ s.n }} {{ s.label }}
         </button>
@@ -600,19 +601,19 @@ async function pay(): Promise<void> {
         <div v-if="period.startDate" class="mb-4">
           <p class="text-body-2 font-weight-medium mb-2">2) Время начала аренды</p>
           <v-select v-model="period.startTime" :items="startTimeOptions" item-title="title" item-value="value"
-            label="Время начала" variant="outlined" rounded="lg" hide-details />
+            label="Время начала" variant="outlined" hide-details />
           <p v-if="selectedStartWindow" class="text-caption text-medium-emphasis mt-2 mb-0">
             Доступно в этот день: {{ selectedStartWindow.from }} — {{ selectedStartWindow.to }}
           </p>
         </div>
 
         <v-text-field v-model.number="period.units" label="Количество" type="number" :min="1"
-          :max="Math.max(1, unitsAvailableForPeriod)" variant="outlined" rounded="lg" class="mb-1" hide-details />
+          :max="Math.max(1, unitsAvailableForPeriod)" variant="outlined" class="mb-1" hide-details />
         <p class="text-caption text-medium-emphasis mb-4">
           Доступно на выбранный период: {{ unitsAvailableForPeriod }} ед.
         </p>
 
-        <div class="booking-wizard__total rounded-lg pa-4">
+        <div class="booking-wizard__total pa-4">
           <p class="text-caption mb-1 text-medium-emphasis">Предварительно</p>
           <p class="text-h5 gv-display text-primary mb-1">
             {{ new Intl.NumberFormat("ru-RU").format(rentalSubtotal) }} ₽
@@ -626,7 +627,7 @@ async function pay(): Promise<void> {
 
       <div v-show="step === 2" class="max-w-screen-md">
         <div class="gv-card-elevated d-flex ga-4 pa-4 mb-4">
-          <div class="booking-wizard__thumb rounded-lg"
+          <div class="booking-wizard__thumb"
             :class="{ 'booking-wizard__thumb--empty': !currentListing.photos?.[0] }">
             <v-img v-if="currentListing.photos?.[0]" :src="currentListing.photos[0]" cover height="90" width="120" />
           </div>
@@ -657,13 +658,13 @@ async function pay(): Promise<void> {
       </div>
 
       <div v-show="step === 3" class="max-w-screen-md">
-        <v-text-field v-model="contacts.fullName" placeholder="ФИО полностью" variant="outlined" rounded="lg"
+        <v-text-field v-model="contacts.fullName" placeholder="ФИО полностью" variant="outlined"
           class="mb-3" hide-details />
-        <v-text-field v-model="contacts.phone" placeholder="Телефон" variant="outlined" rounded="lg" class="mb-3"
+        <v-text-field v-model="contacts.phone" placeholder="Телефон" variant="outlined" class="mb-3"
           hide-details />
-        <v-text-field v-model="contacts.email" placeholder="E-mail" variant="outlined" rounded="lg" class="mb-3"
+        <v-text-field v-model="contacts.email" placeholder="E-mail" variant="outlined" class="mb-3"
           hide-details />
-        <v-text-field :model-value="`Способ получения: ${pickupLabel}`" variant="outlined" rounded="lg" hide-details
+        <v-text-field :model-value="`Способ получения: ${pickupLabel}`" variant="outlined" hide-details
           readonly />
       </div>
 
@@ -693,13 +694,13 @@ async function pay(): Promise<void> {
       </div>
 
       <div class="d-flex flex-wrap ga-3 mt-6">
-        <v-btn v-if="step > 1" variant="outlined" color="primary" class="gv-cta" rounded="lg" @click="prevStep">
+        <v-btn v-if="step > 1" variant="outlined" color="primary" class="gv-cta" @click="prevStep">
           Назад
         </v-btn>
-        <v-btn v-if="step < 4" color="primary" class="gv-cta" rounded="lg" @click="nextStep">
+        <v-btn v-if="step < 4" color="primary" class="gv-cta" @click="nextStep">
           Далее
         </v-btn>
-        <v-btn v-if="step === 4" color="primary" class="gv-cta" rounded="lg" :loading="isSubmitting" :disabled="!canPay"
+        <v-btn v-if="step === 4" color="primary" class="gv-cta" :loading="isSubmitting" :disabled="!canPay"
           @click="pay">
           Оплатить
         </v-btn>
@@ -714,7 +715,7 @@ async function pay(): Promise<void> {
     </p>
 
     <v-dialog v-model="startTimeDialogOpen" max-width="420">
-      <v-card rounded="lg">
+      <v-card class="gv-modal">
         <v-card-title class="text-subtitle-1 font-weight-semibold">
           Выберите время старта аренды
         </v-card-title>
@@ -723,12 +724,12 @@ async function pay(): Promise<void> {
             Дата старта: {{ startDateDisplay || "—" }}
           </p>
           <v-select v-model="startTimeDialogValue" :items="startTimeOptions" item-title="title" item-value="value"
-            label="Время старта" variant="outlined" rounded="lg" hide-details />
+            label="Время старта" variant="outlined" hide-details />
         </v-card-text>
         <v-card-actions class="px-4 pb-4">
           <v-spacer />
-          <v-btn variant="text" @click="startTimeDialogOpen = false">Отмена</v-btn>
-          <v-btn color="primary" variant="flat" @click="applyStartTimeFromDialog">
+          <v-btn variant="text" class="action-btn" @click="startTimeDialogOpen = false">Отмена</v-btn>
+          <v-btn color="primary" variant="flat" class="action-btn" @click="applyStartTimeFromDialog">
             Применить
           </v-btn>
         </v-card-actions>
@@ -740,9 +741,10 @@ async function pay(): Promise<void> {
 <style scoped>
 .step-pill {
   cursor: pointer;
-  background: #fafafa;
-  border-color: #e8e8e8 !important;
-  color: rgba(0, 0, 0, 0.45);
+  background: var(--gv-bg-page);
+  border-radius: var(--gv-radius-btn);
+  border-color: var(--gv-border-light) !important;
+  color: var(--gv-text-muted);
 }
 
 .step-pill--active {
@@ -755,13 +757,15 @@ async function pay(): Promise<void> {
 .booking-wizard__total {
   background: var(--gv-primary-soft-bg);
   border: 1px solid var(--gv-primary-soft-border);
+  border-radius: var(--gv-radius-card);
 }
 
 .booking-wizard__thumb {
   width: 120px;
   height: 90px;
   flex-shrink: 0;
-  background: #e8e8e8;
+  background: var(--gv-border-light);
+  border-radius: var(--gv-radius-thumb);
   overflow: hidden;
 }
 
@@ -770,6 +774,6 @@ async function pay(): Promise<void> {
 }
 
 .booking-wizard__date-chip {
-  border-radius: 999px !important;
+  border-radius: var(--gv-radius-chip) !important;
 }
 </style>

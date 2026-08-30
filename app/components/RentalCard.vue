@@ -70,13 +70,14 @@ function open(): void {
   min-height: 360px;
   cursor: pointer;
   transition:
-    box-shadow 0.2s ease,
+    border-color 0.2s ease,
     transform 0.2s ease;
 }
 
+/* Ховер без «плавающей» тени: карточка чуть приподнимается, граница темнеет. */
 .listing-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  border-color: var(--gv-border);
 }
 
 .listing-card:focus-visible {
@@ -86,9 +87,9 @@ function open(): void {
 
 .listing-card__media {
   height: 190px;
-  border-radius: 12px;
+  border-radius: var(--gv-radius-thumb);
   margin: 0 0 12px;
-  background-color: #eeeeee;
+  background-color: var(--gv-border-light);
   background-size: cover;
   background-position: center;
 }
@@ -181,7 +182,7 @@ function open(): void {
 .listing-card:focus-visible .listing-card__go {
   background: var(--gv-primary);
   border-color: var(--gv-primary);
-  color: #ffffff;
+  color: var(--gv-surface);
   transform: translateX(2px);
 }
 </style>

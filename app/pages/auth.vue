@@ -66,15 +66,44 @@ async function submit() {
     isLoading.value = false;
   }
 }
+
+const isGorodaivesiLoading = ref(false);
+
+async function gorodaivesiSubmit() {
+  errorMessage.value = "";
+  if (!form.email || !form.password) {
+    errorMessage.value =
+      "Введите email и пароль вашего аккаунта «Города и Веси».";
+    return;
+  }
+  isGorodaivesiLoading.value = true;
+  try {
+    const ok = await auth.gorodaivesiLogin(form.email, form.password);
+    if (!ok) {
+      toast("Не удалось войти через «Города и Веси». Проверьте данные.", {
+        type: "error",
+        autoClose: 6000,
+      });
+      return;
+    }
+    await navigateTo("/cabinet");
+  } finally {
+    isGorodaivesiLoading.value = false;
+  }
+}
 </script>
 
 <template>
-  <section class="page-container py-6">
-    <h1 class="section-title mb-4">Локальная авторизация</h1>
-    <v-card class="pa-4" rounded="lg">
+  <section class="auth-page page-container py-8">
+    <span class="gv-sign-eyebrow mb-3">Аккаунт</span>
+    <h1 class="section-title mb-2">{{ mode === "login" ? "Вход" : "Регистрация" }}</h1>
+    <p class="text-muted mb-4 auth-page__lead">
+      Войдите в аккаунт «Аренда инвентаря» или используйте вход через «Города и Веси».
+    </p>
+    <v-card class="pa-4 pa-sm-6 gv-card-elevated auth-page__card" flat>
       <v-btn-toggle v-model="mode" mandatory class="mb-4">
-        <v-btn value="login">Вход</v-btn>
-        <v-btn value="registration">Регистрация</v-btn>
+        <v-btn value="login" class="action-btn">Вход</v-btn>
+        <v-btn value="registration" class="action-btn">Регистрация</v-btn>
       </v-btn-toggle>
 
       <form class="auth-form" @submit.prevent="submit">
@@ -113,10 +142,73 @@ async function submit() {
 
         <div v-if="errorMessage" class="text-error mb-3">{{ errorMessage }}</div>
 
-        <v-btn type="submit" color="primary" class="action-btn" :loading="isLoading">
+        <v-btn
+          type="submit"
+          color="primary"
+          class="gv-cta"
+          block
+          size="large"
+          :loading="isLoading"
+        >
           {{ mode === "login" ? "Войти" : "Создать аккаунт" }}
         </v-btn>
       </form>
+
+      <div class="auth-page__divider my-5">
+        <span>или</span>
+      </div>
+
+      <v-btn
+        variant="outlined"
+        color="secondary"
+        class="gv-cta"
+        block
+        size="large"
+        :loading="isGorodaivesiLoading"
+        @click="gorodaivesiSubmit"
+      >
+        <v-icon start>mdi-sign-direction</v-icon>
+        Войти через «Города и Веси»
+      </v-btn>
+      <p class="auth-page__hint mt-2">
+        Введите email и пароль вашего аккаунта на gorodaivesi.ru — мы создадим
+        связанный профиль автоматически.
+      </p>
     </v-card>
   </section>
 </template>
+
+<style scoped>
+.auth-page__card {
+  max-width: 460px;
+}
+
+.auth-page__lead {
+  max-width: 460px;
+  font-size: 14px;
+}
+
+.auth-page__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--gv-text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.auth-page__divider::before,
+.auth-page__divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--gv-border-light);
+}
+
+.auth-page__hint {
+  font-size: 12px;
+  color: var(--gv-text-muted);
+  line-height: 1.45;
+}
+</style>

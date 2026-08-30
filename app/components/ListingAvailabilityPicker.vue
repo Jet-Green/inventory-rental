@@ -107,7 +107,7 @@ const enabledCount = computed(
     </div>
 
     <div class="availability-picker__days">
-      <div v-for="wd in WEEKDAYS" :key="`edit-${wd.day}`" class="availability-picker__day-card rounded-lg pa-3 mb-3"
+      <div v-for="wd in WEEKDAYS" :key="`edit-${wd.day}`" class="availability-picker__day-card pa-3 mb-3"
         :class="{ 'availability-picker__day-card--off': !rowForDay(wd.day).enabled }">
         <v-row align="center" dense>
           <v-col cols="12" md="5">
@@ -136,14 +136,14 @@ const enabledCount = computed(
 
 <style scoped>
 .availability-picker__day-short {
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--gv-text-secondary);
 }
 
 .availability-picker__track {
   position: relative;
   height: 12px;
-  border-radius: 6px;
-  background: #f0f0f0;
+  border-radius: var(--gv-radius-chip);
+  background: var(--gv-border-light);
   overflow: hidden;
 }
 
@@ -151,14 +151,15 @@ const enabledCount = computed(
   position: absolute;
   top: 0;
   bottom: 0;
-  border-radius: 6px;
-  background: linear-gradient(90deg, var(--gv-primary), #ffb347);
+  border-radius: var(--gv-radius-chip);
+  background: var(--gv-primary);
   min-width: 4px;
 }
 
 .availability-picker__day-card {
-  border: 1px solid #eee;
-  background: #fafafa;
+  border: 1px solid var(--gv-border-light);
+  border-radius: var(--gv-radius-card);
+  background: var(--gv-bg-page);
 }
 
 .availability-picker__day-card--off {

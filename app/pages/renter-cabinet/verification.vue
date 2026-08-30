@@ -14,6 +14,7 @@ onMounted(() => {
 
 <template>
   <div class="px-4 px-sm-6 py-8">
+    <span class="gv-sign-eyebrow mb-3">ВЕРИФИКАЦИЯ</span>
     <h1 class="gv-display text-h4 mb-3">Подтверждение профиля</h1>
     <p class="text-body-2 text-medium-emphasis mb-6">
       Подтвердите профиль — так владельцы объявлений увидят, что вам можно доверять.
@@ -27,7 +28,6 @@ onMounted(() => {
         v-if="!profile?.isRenterVerified"
         color="primary"
         class="gv-cta"
-        rounded="lg"
         @click="verifyRenter"
       >
         Пройти проверку

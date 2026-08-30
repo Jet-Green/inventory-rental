@@ -34,8 +34,8 @@ const sectionTitle = computed(() => {
         <span class="gv-display font-weight-black text-body-1">· Админка</span>
         <span class="text-primary font-weight-semibold text-caption">{{ sectionTitle }}</span>
         <v-spacer />
-        <v-btn variant="text" size="small" to="/">На сайт</v-btn>
-        <v-btn variant="text" size="small" @click="auth.logout">Выйти</v-btn>
+        <v-btn variant="text" size="small" class="action-btn" to="/">На сайт</v-btn>
+        <v-btn variant="text" size="small" class="action-btn" @click="auth.logout">Выйти</v-btn>
       </div>
     </header>
     <div class="d-flex">
@@ -45,14 +45,14 @@ const sectionTitle = computed(() => {
             v-for="item in items"
             :key="item.to"
             :to="item.to"
-            class="admin-nav-link d-block text-decoration-none pa-3 rounded-lg mb-1 text-caption"
+            class="admin-nav-link d-block text-decoration-none pa-3 mb-1 text-caption"
             :class="{ 'admin-nav-link--active': navActive(item.to) }"
           >
             {{ item.title }}
           </NuxtLink>
         </nav>
       </aside>
-      <v-main class="flex-grow-1 bg-white">
+      <v-main class="admin-main flex-grow-1">
         <slot />
       </v-main>
     </div>
@@ -61,11 +61,15 @@ const sectionTitle = computed(() => {
 
 <style scoped>
 .border-b {
-  border-bottom: 1px solid #f0f0f0 !important;
+  border-bottom: 1px solid var(--gv-border-light) !important;
 }
 
 .border-e {
-  border-right: 1px solid #f0f0f0 !important;
+  border-right: 1px solid var(--gv-border-light) !important;
+}
+
+.admin-main {
+  background: var(--gv-bg-page);
 }
 
 .admin-nav {
@@ -76,7 +80,8 @@ const sectionTitle = computed(() => {
 }
 
 .admin-nav-link {
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--gv-text-secondary);
+  border-radius: var(--gv-radius-btn);
 }
 
 .admin-nav-link--active {

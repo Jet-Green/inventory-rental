@@ -5,7 +5,7 @@ defineProps<{
   value: string | number;
   /** Иконка mdi (напр. `mdi-calendar-check`). */
   icon?: string;
-  /** Динамика, выводится цветом ссылки (#3daff5). */
+  /** Динамика, выводится акцентным цветом ссылки (--gv-link). */
   delta?: string;
 }>();
 </script>

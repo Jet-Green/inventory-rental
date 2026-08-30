@@ -116,9 +116,9 @@ function removeAt(index: number): void {
 <style scoped>
 .dropzone {
   border: 2px dashed var(--gv-border);
-  border-radius: 12px;
+  border-radius: var(--gv-radius-card);
   padding: 32px;
-  background: #fafafa;
+  background: var(--gv-bg-page);
   text-align: center;
   cursor: pointer;
   transition: border-color 0.15s ease, background-color 0.15s ease;
@@ -156,9 +156,9 @@ function removeAt(index: number): void {
   position: relative;
   width: 80px;
   height: 80px;
-  border-radius: 8px;
+  border-radius: var(--gv-radius-thumb);
   overflow: hidden;
-  background: #eee;
+  background: var(--gv-border-light);
 }
 
 .dropzone__thumb img {
@@ -175,8 +175,8 @@ function removeAt(index: number): void {
   width: 22px;
   height: 22px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
+  background: rgba(32, 28, 23, 0.6);
+  color: var(--gv-surface);
   display: flex;
   align-items: center;
   justify-content: center;

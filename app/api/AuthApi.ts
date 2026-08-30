@@ -20,6 +20,17 @@ export default {
     });
   },
 
+  /** Вход через аккаунт «Города и Веси» (SSO, проксируемый логин). */
+  async gorodaivesiLogin(
+    email: string,
+    password: string,
+  ): Promise<{ user: IUserProfile }> {
+    return useNuxtApp().$apiFetch("/auth/gorodaivesi/login", {
+      method: "POST",
+      body: { email, password },
+    });
+  },
+
   async refresh(): Promise<IUserProfile> {
     return useNuxtApp().$apiFetch("/auth/refresh", {
       method: "GET",

@@ -25,7 +25,8 @@ const { open: openCabinetSelect } = useCabinetSelectDialog();
 <style scoped>
 .hero {
   padding: 72px 0 48px;
-  background: linear-gradient(180deg, #fffef4 0%, #fff9e8 100%);
+  background: var(--gv-bg-page);
+  border-bottom: 1px solid var(--gv-border-light);
 }
 
 .hero-content {

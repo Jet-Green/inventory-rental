@@ -28,6 +28,8 @@ const emit = defineEmits<{
   (e: "start-picked", dateIso: string): void;
 }>();
 const isPickingEnd = ref(false);
+/** Дата под курсором при выборе конца — для превью будущего диапазона. */
+const hoverIso = ref("");
 
 function safeMonthFromIso(iso: string): dayjs.Dayjs {
   if (!iso) return dayjs().startOf("month");
@@ -123,8 +125,38 @@ function isRangeEnd(dateIso: string): boolean {
 
 function isSuggestedEndDate(dateIso: string): boolean {
   if (!isPickingEnd.value || !props.startDate || !!props.endDate) return false;
+  if (hoverIso.value) return false;
   const suggested = dayjs(props.startDate).add(props.minRentalDays, "day").format("YYYY-MM-DD");
   return dateIso === suggested;
+}
+
+/** Идёт ли выбор конца (старт выбран, конец — ещё нет). */
+const isChoosingEnd = computed(
+  () => isPickingEnd.value && !!props.startDate && !props.endDate,
+);
+
+/** Превью диапазона от старта до даты под курсором (стандартное поведение). */
+function isInHoverRange(dateIso: string): boolean {
+  if (!isChoosingEnd.value || !hoverIso.value) return false;
+  const start = dayjs(props.startDate);
+  const hover = dayjs(hoverIso.value);
+  const date = dayjs(dateIso);
+  const lo = hover.isBefore(start) ? hover : start;
+  const hi = hover.isBefore(start) ? start : hover;
+  return !date.isBefore(lo, "day") && !date.isAfter(hi, "day");
+}
+
+function isHoverEnd(dateIso: string): boolean {
+  return isChoosingEnd.value && !!hoverIso.value && dateIso === hoverIso.value;
+}
+
+function onCellHover(cell: ICalendarDayCell): void {
+  if (!isChoosingEnd.value || !cell.inCurrentMonth) return;
+  hoverIso.value = cell.iso;
+}
+
+function clearHover(): void {
+  hoverIso.value = "";
 }
 
 function onDateClick(cell: ICalendarDayCell): void {
@@ -137,6 +169,19 @@ function onDateClick(cell: ICalendarDayCell): void {
     if (!props.canStartDate(dateIso)) return;
     emit("start-picked", dateIso);
     isPickingEnd.value = true;
+    hoverIso.value = "";
+    return;
+  }
+
+  // Клик по дате раньше старта — начинаем диапазон заново с неё (как в обычных пикерах).
+  if (clicked.isBefore(dayjs(props.startDate), "day")) {
+    if (props.canStartDate(dateIso)) {
+      emit("start-picked", dateIso);
+      isPickingEnd.value = true;
+      hoverIso.value = "";
+      return;
+    }
+    emit("blocked-click", "С этой даты нельзя начать аренду. Выберите другую.");
     return;
   }
 
@@ -166,6 +211,7 @@ function onDateClick(cell: ICalendarDayCell): void {
     rentalDays,
   });
   isPickingEnd.value = false;
+  hoverIso.value = "";
 }
 
 watch(
@@ -213,7 +259,7 @@ watch(
       </v-chip>
     </div>
 
-    <div class="range-calendar__grid mb-2">
+    <div class="range-calendar__grid mb-2" @mouseleave="clearHover">
       <div v-for="weekday in weekdayLabels" :key="weekday"
         class="range-calendar__weekday text-caption text-medium-emphasis">
         {{ weekday }}
@@ -225,10 +271,12 @@ watch(
         'range-calendar__day--cannot-pickup': cell.inCurrentMonth && !canPickupOnDate(cell.iso),
         'range-calendar__day--busy': cell.inCurrentMonth && isBusyDay(cell.iso),
         'range-calendar__day--in-range': cell.inCurrentMonth && isInSelectedRange(cell.iso),
+        'range-calendar__day--in-hover': cell.inCurrentMonth && isInHoverRange(cell.iso),
+        'range-calendar__day--hover-end': cell.inCurrentMonth && isHoverEnd(cell.iso),
         'range-calendar__day--start': cell.inCurrentMonth && isRangeStart(cell.iso),
         'range-calendar__day--end': cell.inCurrentMonth && isRangeEnd(cell.iso),
         'range-calendar__day--suggested-end': cell.inCurrentMonth && isSuggestedEndDate(cell.iso),
-      }" @click="onDateClick(cell)">
+      }" @click="onDateClick(cell)" @mouseenter="onCellHover(cell)">
         <span>{{ cell.inCurrentMonth ? cell.dayLabel : "" }}</span>
         <span v-if="cell.inCurrentMonth && isRangeStart(cell.iso)" class="range-calendar__edge-label">
           Начало
@@ -238,6 +286,10 @@ watch(
         </span>
       </button>
     </div>
+
+    <p v-if="isChoosingEnd" class="range-calendar__hint mb-2">
+      Выберите дату окончания аренды
+    </p>
 
     <div class="d-flex flex-wrap ga-3 text-caption text-medium-emphasis">
       <span class="d-flex align-center ga-1"><span class="legend legend--pickup-ok" /> можно взять</span>
@@ -265,27 +317,26 @@ watch(
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #e4e4e4;
-  border-radius: 10px;
-  min-height: 36px;
-  background: #fff;
+  border: 1px solid var(--gv-border);
+  border-radius: 6px;
+  min-height: 38px;
+  background: var(--gv-card-bg);
   cursor: pointer;
   font-size: 13px;
+  color: var(--gv-text);
   transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.16s ease,
-    box-shadow 0.2s ease;
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .range-calendar__day:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  border-color: var(--gv-primary);
 }
 
 .range-calendar__day--outside {
-  opacity: 0.45;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .range-calendar__day--today {
@@ -293,23 +344,38 @@ watch(
 }
 
 .range-calendar__day--can-pickup {
-  box-shadow: inset 0 0 0 1px #81c784;
+  background: var(--gv-available-soft-bg);
+  border-color: var(--gv-available-soft-border);
+  color: var(--gv-available-text);
 }
 
 .range-calendar__day--cannot-pickup {
-  background: #f5f5f5;
-  color: #8d8d8d;
+  background: var(--gv-sidebar);
+  border-color: var(--gv-border-light);
+  color: var(--gv-text-muted);
+  cursor: not-allowed;
 }
 
 .range-calendar__day--busy {
-  background: #ffebee;
-  color: #9a1c1c;
+  background: #fbe6e0;
+  border-color: #efc3b7;
+  color: var(--gv-danger);
+  cursor: not-allowed;
 }
 
+/* Превью будущего диапазона под курсором и подтверждённый диапазон — одинаково, оранжевым. */
+.range-calendar__day--in-hover,
 .range-calendar__day--in-range {
-  background: #e3f2fd;
-  border-color: #90caf9;
-  animation: rangeFadeIn 0.22s ease;
+  background: var(--gv-primary-soft-bg);
+  border-color: var(--gv-primary-soft-border);
+  color: var(--gv-primary);
+}
+
+.range-calendar__day--hover-end {
+  border-color: var(--gv-primary);
+  border-style: dashed;
+  color: var(--gv-primary);
+  font-weight: 700;
 }
 
 .range-calendar__day--start,
@@ -317,13 +383,12 @@ watch(
   background: var(--gv-primary);
   border-color: var(--gv-primary);
   color: #fff;
-  font-weight: 600;
-  animation: edgePopIn 0.2s ease;
+  font-weight: 700;
 }
 
 .range-calendar__day--suggested-end {
-  border-color: #42a5f5;
-  animation: suggestedPulse 1.2s ease-in-out infinite;
+  border-color: var(--gv-primary);
+  border-style: dashed;
 }
 
 .range-calendar__edge-label {
@@ -337,34 +402,39 @@ watch(
   opacity: 0.9;
 }
 
+.range-calendar__hint {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gv-primary);
+}
+
 .range-calendar__pick-end-hint {
   font-size: 12px;
   font-weight: 700;
-  color: #ef6c00;
-  animation: pickEndPulse 1s ease-in-out infinite;
+  color: var(--gv-primary);
 }
 
 .legend {
   width: 10px;
   height: 10px;
-  border-radius: 999px;
+  border-radius: 3px;
   display: inline-block;
 }
 
 .legend--busy {
-  background: #ef5350;
+  background: var(--gv-danger);
 }
 
 .legend--pickup-ok {
-  background: #4caf50;
+  background: var(--gv-available);
 }
 
 .legend--pickup-no {
-  background: #bdbdbd;
+  background: #cfc9bd;
 }
 
 .legend--range {
-  background: #90caf9;
+  background: var(--gv-primary-soft-border);
 }
 
 .legend--start {

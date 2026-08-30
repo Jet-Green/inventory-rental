@@ -105,16 +105,17 @@ async function confirmDelete(): Promise<void> {
 
 <template>
   <div class="px-5 py-6">
+    <span class="gv-sign-eyebrow mb-3">КАТЕГОРИИ</span>
     <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
       <h1 class="gv-display text-h4">Категории</h1>
-      <v-btn color="primary" class="gv-cta" rounded="lg" @click="openCreate">
+      <v-btn color="primary" class="gv-cta" @click="openCreate">
         Создать категорию
       </v-btn>
     </div>
 
     <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
 
-    <div class="gv-card-elevated overflow-hidden rounded-lg admin-cat-table">
+    <div class="gv-card-elevated overflow-hidden admin-cat-table">
       <v-table>
         <thead>
           <tr>
@@ -173,7 +174,6 @@ async function confirmDelete(): Promise<void> {
             v-model="form.key"
             label="Ключ (латиницей, напр. sport)"
             variant="outlined"
-            rounded="lg"
             class="mb-3"
             hide-details
           />
@@ -181,7 +181,6 @@ async function confirmDelete(): Promise<void> {
             v-model="form.name"
             label="Название"
             variant="outlined"
-            rounded="lg"
             class="mb-3"
             hide-details
           />
@@ -189,7 +188,6 @@ async function confirmDelete(): Promise<void> {
             v-model="form.icon"
             label="Иконка (emoji)"
             variant="outlined"
-            rounded="lg"
             class="mb-3"
             hide-details
           />
@@ -198,14 +196,13 @@ async function confirmDelete(): Promise<void> {
             label="Порядок"
             type="number"
             variant="outlined"
-            rounded="lg"
             hide-details
           />
         </v-card-text>
         <v-card-actions class="pa-4 pt-0">
           <v-spacer />
-          <v-btn variant="text" rounded="lg" @click="dialogOpen = false">Отмена</v-btn>
-          <v-btn color="primary" class="gv-cta" rounded="lg" :loading="isSaving" @click="save">
+          <v-btn variant="text" class="action-btn" @click="dialogOpen = false">Отмена</v-btn>
+          <v-btn color="primary" class="gv-cta" :loading="isSaving" @click="save">
             Сохранить
           </v-btn>
         </v-card-actions>
@@ -220,8 +217,8 @@ async function confirmDelete(): Promise<void> {
         </v-card-text>
         <v-card-actions class="pa-4 pt-0">
           <v-spacer />
-          <v-btn variant="text" rounded="lg" @click="deleteDialogOpen = false">Отмена</v-btn>
-          <v-btn color="error" class="gv-cta" rounded="lg" @click="confirmDelete">Удалить</v-btn>
+          <v-btn variant="text" class="action-btn" @click="deleteDialogOpen = false">Отмена</v-btn>
+          <v-btn color="error" class="gv-cta" @click="confirmDelete">Удалить</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -232,8 +229,9 @@ async function confirmDelete(): Promise<void> {
 .admin-cat-table :deep(th) {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.55);
-  background: #f5f5f5;
+  color: var(--gv-text-secondary);
+  background: var(--gv-bg-page);
+  border-bottom: 1px solid var(--gv-border-light);
   white-space: nowrap;
 }
 

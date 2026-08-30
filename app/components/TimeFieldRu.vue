@@ -81,7 +81,7 @@ watch(menuOpen, (open) => {
       />
     </template>
 
-    <v-card class="time-field-ru__panel" elevation="8" @click.stop>
+    <v-card class="time-field-ru__panel" elevation="0" @click.stop>
       <v-time-picker
         :model-value="draftTime"
         format="24hr"
@@ -91,8 +91,16 @@ watch(menuOpen, (open) => {
       />
       <v-card-actions class="px-4 pb-3">
         <v-spacer />
-        <v-btn variant="text" size="small" @click="cancelMenu">Отмена</v-btn>
-        <v-btn color="primary" variant="flat" size="small" @click="applyTime">
+        <v-btn variant="text" size="small" class="action-btn" @click="cancelMenu">
+          Отмена
+        </v-btn>
+        <v-btn
+          color="primary"
+          variant="flat"
+          size="small"
+          class="action-btn"
+          @click="applyTime"
+        >
           Готово
         </v-btn>
       </v-card-actions>
@@ -107,5 +115,8 @@ watch(menuOpen, (open) => {
 
 .time-field-ru__panel {
   overflow: hidden;
+  border: 1px solid var(--gv-border-light);
+  border-radius: var(--gv-radius-modal);
+  box-shadow: var(--gv-shadow-card);
 }
 </style>

@@ -32,6 +32,19 @@ export const useAuth = defineStore("auth", () => {
     }
   }
 
+  async function gorodaivesiLogin(
+    email: string,
+    password: string,
+  ): Promise<boolean> {
+    try {
+      const response = await AuthApi.gorodaivesiLogin(email, password);
+      user.value = response.user;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async function checkAuth(): Promise<boolean> {
     if (checkAuthPromise) {
       return checkAuthPromise;
@@ -73,6 +86,7 @@ export const useAuth = defineStore("auth", () => {
     isChecking,
     registration,
     login,
+    gorodaivesiLogin,
     checkAuth,
     setUser,
     logout,

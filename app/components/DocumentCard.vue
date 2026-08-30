@@ -47,7 +47,6 @@ const hasUrl = computed(() => !!props.pdfUrl);
         variant="outlined"
         color="primary"
         class="gv-cta"
-        rounded="lg"
         size="small"
         :disabled="!hasUrl"
         prepend-icon="mdi-file-pdf-box"
@@ -60,7 +59,6 @@ const hasUrl = computed(() => !!props.pdfUrl);
         download
         color="primary"
         class="gv-cta"
-        rounded="lg"
         size="small"
         :disabled="!hasUrl"
         prepend-icon="mdi-download"

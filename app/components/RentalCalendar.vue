@@ -153,32 +153,33 @@ function bookingStatusColor(status: IBookedRange["status"]): string {
   font-size: 12px;
   line-height: 1.2;
   border: 1px solid transparent;
+  border-radius: 4px;
 }
 
 .calendar-day-pill--free {
-  background: #e8f5e9;
-  color: #1b5e20;
-  border-color: #c8e6c9;
+  background: var(--gv-available-soft-bg);
+  color: var(--gv-available-text);
+  border-color: var(--gv-available-soft-border);
 }
 
 .calendar-day-pill--booked {
-  background: #ffebee;
-  color: #b71c1c;
-  border-color: #ffcdd2;
+  background: #fbe6e0;
+  color: var(--gv-danger);
+  border-color: #efc3b7;
 }
 
 .legend-dot {
   width: 10px;
   height: 10px;
-  border-radius: 999px;
+  border-radius: 3px;
   display: inline-block;
 }
 
 .legend-dot--free {
-  background: #66bb6a;
+  background: var(--gv-available);
 }
 
 .legend-dot--busy {
-  background: #ef5350;
+  background: var(--gv-danger);
 }
 </style>

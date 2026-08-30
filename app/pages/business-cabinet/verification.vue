@@ -103,6 +103,7 @@ async function submit(): Promise<void> {
 
 <template>
   <div class="px-4 px-sm-6 py-8">
+    <span class="gv-sign-eyebrow mb-3">ВЕРИФИКАЦИЯ</span>
     <h1 class="gv-display text-h4 mb-2">Верификация бизнеса</h1>
     <p class="text-body-2 text-medium-emphasis mb-4">
       Выберите тип и заполните реквизиты для договоров и выплат.
@@ -136,8 +137,7 @@ async function submit(): Promise<void> {
           :key="opt.k"
           :variant="entity === opt.k ? 'flat' : 'outlined'"
           :color="entity === opt.k ? 'primary' : 'default'"
-          class="text-caption"
-          rounded="lg"
+          class="text-caption action-btn"
           @click="entity = opt.k"
         >
           {{ opt.t }}
@@ -156,7 +156,6 @@ async function submit(): Promise<void> {
           v-model="form.inn"
           label="ИНН"
           variant="outlined"
-          rounded="lg"
           class="mb-3"
         />
       </div>
@@ -165,7 +164,6 @@ async function submit(): Promise<void> {
         v-model="form.ogrnOrOgrnip"
         :label="entity === 'ip' ? 'ОГРНИП' : 'ОГРН'"
         variant="outlined"
-        rounded="lg"
         class="mb-3"
         style="max-width: 480px"
       />
@@ -173,7 +171,6 @@ async function submit(): Promise<void> {
         v-model="form.companyName"
         label="Наименование / ФИО"
         variant="outlined"
-        rounded="lg"
         class="mb-3"
         hide-details
       />
@@ -181,7 +178,6 @@ async function submit(): Promise<void> {
         v-model="form.payoutDetails"
         label="Реквизиты для выплат (телефон / СБП / счёт)"
         variant="outlined"
-        rounded="lg"
         class="mb-4"
         hide-details
       />
@@ -193,7 +189,6 @@ async function submit(): Promise<void> {
       <v-btn
         color="primary"
         class="gv-cta"
-        rounded="lg"
         :loading="isSubmitting"
         :disabled="isSubmitting"
         @click="submit"
@@ -204,7 +199,7 @@ async function submit(): Promise<void> {
 
     <div
       v-else-if="organization?.moderationStatus === 'pending'"
-      class="verification-pending rounded-lg pa-4 d-flex align-center ga-3"
+      class="verification-pending pa-4 d-flex align-center ga-3"
     >
       <v-icon icon="mdi-clock-outline" size="24" color="warning" />
       <span class="text-body-2">
@@ -222,6 +217,7 @@ async function submit(): Promise<void> {
 .verification-pending {
   background: var(--gv-primary-soft-bg);
   border: 1px solid var(--gv-primary-soft-border);
+  border-radius: var(--gv-radius-card);
   max-width: 480px;
 }
 </style>

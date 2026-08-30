@@ -56,6 +56,7 @@ async function onChange(id: string, status: BookingStatus): Promise<void> {
 
 <template>
   <div class="px-4 px-sm-6 py-8">
+    <span class="gv-sign-eyebrow mb-3">БРОНИ</span>
     <h1 class="gv-display text-h4 mb-6">Брони</h1>
 
     <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
@@ -90,7 +91,6 @@ async function onChange(id: string, status: BookingStatus): Promise<void> {
             :color="t.color"
             :variant="t.color === 'error' ? 'outlined' : 'flat'"
             class="gv-cta"
-            rounded="lg"
             size="small"
             :loading="updatingId === booking._id"
             @click="onChange(booking._id, t.status)"

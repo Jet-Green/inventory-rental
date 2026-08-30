@@ -24,7 +24,6 @@ const emit = defineEmits<{
       v-if="actionTitle"
       color="primary"
       class="gv-cta"
-      rounded="lg"
       @click="emit('action')"
     >
       {{ actionTitle }}

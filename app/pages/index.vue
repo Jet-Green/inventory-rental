@@ -110,13 +110,21 @@ useSeoMeta({
 
 <template>
   <div class="home-catalog">
-    <section class="gv-page-wide px-4 px-sm-6 pb-12 pt-8">
-      <h1 class="home-catalog__hero gv-display mb-3">
-        Найдите оборудование для отдыха и спорта
-      </h1>
-      <p class="home-catalog__lead mb-6">
-        Единый каталог аренды инвентаря: спорт, детям, для ОВЗ и в поход
-      </p>
+    <section class="home-catalog__hero-band">
+      <div class="gv-page-wide px-4 px-sm-6 pt-8 pb-6">
+        <span class="gv-sign-eyebrow mb-4">Каталог аренды</span>
+        <h1 class="home-catalog__hero gv-display mb-3">
+          Всё, что нужно, —
+          <span class="gv-hand home-catalog__hero-accent">напрокат</span>
+        </h1>
+        <p class="home-catalog__lead mb-6">
+          Спортивный инвентарь, детское снаряжение, техника для ОВЗ и походы —
+          от местных арендодателей, с онлайн-бронированием и договором.
+        </p>
+      </div>
+    </section>
+
+    <section class="gv-page-wide px-4 px-sm-6 pb-12 pt-6">
 
       <div class="d-flex flex-column flex-md-row ga-3 mb-6 align-stretch">
         <v-text-field
@@ -241,19 +249,35 @@ useSeoMeta({
 </template>
 
 <style scoped>
+.home-catalog__hero-band {
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(35, 175, 214, 0.1), transparent 55%),
+    linear-gradient(180deg, #fff7ec 0%, var(--gv-bg-page) 100%);
+  border-bottom: 1px solid var(--gv-border-light);
+}
+
 .home-catalog__hero {
-  font-size: clamp(1.75rem, 1.2rem + 2vw, 2.25rem);
-  line-height: 1.2;
+  font-size: clamp(2rem, 1.3rem + 2.6vw, 3rem);
+  line-height: 1.08;
   color: var(--gv-text);
+}
+
+.home-catalog__hero-accent {
+  color: var(--gv-primary);
+  font-size: 1.18em;
+  line-height: 0.8;
+  margin-left: 2px;
 }
 
 .home-catalog__lead {
   margin: 0;
+  max-width: 620px;
   font-size: 16px;
+  line-height: 1.55;
   color: var(--gv-text-secondary);
 }
 
 .home-catalog__search :deep(.v-field) {
-  border-radius: 15px;
+  border-radius: var(--gv-radius-input);
 }
 </style>

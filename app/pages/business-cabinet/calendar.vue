@@ -22,11 +22,13 @@ const selectedDate = ref<string>("");
 
 const WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
-const monthLabel = computed(() =>
-  new Intl.DateTimeFormat("ru-RU", { month: "long", year: "numeric" }).format(
-    month.value.toDate(),
-  ),
-);
+const monthLabel = computed(() => {
+  const raw = new Intl.DateTimeFormat("ru-RU", {
+    month: "long",
+    year: "numeric",
+  }).format(month.value.toDate());
+  return raw.replace(/^./, (c) => c.toUpperCase());
+});
 
 /** Брони, занимающие календарь (всё, кроме отменённых). */
 const activeBookings = computed(() =>
@@ -130,7 +132,7 @@ function renterLine(b: IBookingItem): string {
       <div class="d-flex align-center justify-space-between mb-4">
         <v-btn icon="mdi-chevron-left" variant="text" @click="prevMonth" />
         <div class="text-center">
-          <p class="text-subtitle-1 font-weight-bold text-capitalize mb-0">
+          <p class="text-subtitle-1 font-weight-bold mb-0">
             {{ monthLabel }}
           </p>
           <button class="calendar__today-link" type="button" @click="goToday">
@@ -235,16 +237,23 @@ function renterLine(b: IBookingItem): string {
 
 .calendar__cell {
   position: relative;
-  aspect-ratio: 1 / 1;
+  min-height: 76px;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  padding: 6px 8px;
+  padding: 8px 10px;
   border: 1px solid var(--gv-border-light);
-  border-radius: 10px;
-  background: #ffffff;
+  border-radius: 6px;
+  background: var(--gv-card-bg);
   cursor: default;
   transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+@media (max-width: 600px) {
+  .calendar__cell {
+    min-height: 52px;
+    padding: 6px;
+  }
 }
 
 .calendar__cell--muted {

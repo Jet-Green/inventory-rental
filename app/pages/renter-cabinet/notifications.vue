@@ -20,6 +20,7 @@ function notImplemented(): void {
 
 <template>
   <div class="px-4 px-sm-6 py-8">
+    <span class="gv-sign-eyebrow mb-3">УВЕДОМЛЕНИЯ</span>
     <div class="d-flex align-center ga-3 mb-6 flex-wrap">
       <h1 class="gv-display text-h4 mb-0">Уведомления</h1>
       <v-chip size="small" variant="tonal" color="error">Не подключено</v-chip>
@@ -38,10 +39,10 @@ function notImplemented(): void {
     </div>
 
     <div class="d-flex ga-3 flex-wrap">
-      <v-btn color="primary" class="gv-cta" rounded="lg" @click="notImplemented">
+      <v-btn color="primary" class="gv-cta" @click="notImplemented">
         Подключить Telegram
       </v-btn>
-      <v-btn variant="outlined" color="primary" class="gv-cta" rounded="lg" @click="notImplemented">
+      <v-btn variant="outlined" color="primary" class="gv-cta" @click="notImplemented">
         Отключить
       </v-btn>
     </div>

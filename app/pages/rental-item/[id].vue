@@ -84,7 +84,7 @@ useSeoMeta({
         <v-col cols="12" lg="8">
           <div class="mb-5">
             <div
-              class="listing-page__hero rounded-lg"
+              class="listing-page__hero"
               :class="{ 'listing-page__hero--empty': !currentListing.photos?.[selectedPhoto] }"
             >
               <v-img
@@ -92,7 +92,7 @@ useSeoMeta({
                 :src="currentListing.photos[selectedPhoto]"
                 cover
                 height="420"
-                rounded="lg"
+                class="listing-page__hero-img"
               />
             </div>
             <div v-if="(currentListing.photos?.length || 0) > 1" class="d-flex ga-2 mt-3 flex-wrap">
@@ -104,7 +104,7 @@ useSeoMeta({
                 :class="{ 'listing-page__thumb--active': selectedPhoto === idx }"
                 @click="selectedPhoto = idx"
               >
-                <v-img :src="ph" cover height="72" width="96" rounded="lg" />
+                <v-img :src="ph" cover height="72" width="96" />
               </button>
             </div>
           </div>
@@ -124,7 +124,6 @@ useSeoMeta({
               block
               color="primary"
               class="gv-cta"
-              rounded="lg"
               size="large"
               :disabled="!!bookingHint && isAuth"
               @click="startBooking"
@@ -144,10 +143,10 @@ useSeoMeta({
         <v-col cols="12">
           <div class="gv-card-elevated pa-5 mb-6">
             <h1 class="gv-display text-h5 mb-2">{{ currentListing.title }}</h1>
-            <p class="text-body-2 mb-3" style="color: rgba(0,0,0,0.5)">
+            <p class="text-body-2 mb-3" style="color: var(--gv-text-muted)">
               {{ categoriesLine }}
             </p>
-            <p class="text-body-1 mb-4" style="color: rgba(0,0,0,0.75)">
+            <p class="text-body-1 mb-4" style="color: var(--gv-text-secondary)">
               {{ currentListing.description }}
             </p>
             <div class="d-flex flex-column ga-2">
@@ -155,13 +154,13 @@ useSeoMeta({
                 Цена:
                 {{ new Intl.NumberFormat("ru-RU").format(currentListing.pricePerDay) }} ₽ / день
               </span>
-              <span class="text-body-2" style="color: rgba(0,0,0,0.65)">
+              <span class="text-body-2" style="color: var(--gv-text-secondary)">
                 Мин. срок: {{ currentListing.minDays }} дн.
               </span>
               <span class="text-body-2 font-weight-medium" style="color: var(--gv-available-text)">
                 Доступно: {{ currentListing.unitsAvailable }} ед.
               </span>
-              <span class="text-body-2" style="color: rgba(0,0,0,0.6)">
+              <span class="text-body-2" style="color: var(--gv-text-secondary)">
                 Получение: {{ pickupLabel }}
               </span>
             </div>
@@ -176,8 +175,14 @@ useSeoMeta({
 
 <style scoped>
 .listing-page__hero {
-  background: #e8e8e8;
+  background: var(--gv-border-light);
+  border-radius: var(--gv-radius-card);
+  overflow: hidden;
   min-height: 200px;
+}
+
+.listing-page__hero-img {
+  border-radius: var(--gv-radius-card);
 }
 
 .listing-page__hero--empty {
@@ -186,11 +191,11 @@ useSeoMeta({
 
 .listing-page__thumb {
   padding: 0;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
+  border: 1px solid var(--gv-border);
+  border-radius: var(--gv-radius-thumb);
   overflow: hidden;
   cursor: pointer;
-  background: #f2f2f2;
+  background: var(--gv-border-light);
 }
 
 .listing-page__thumb--active {
