@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { rentalReturnPath } from "~/utils/rentalHandoff";
 import { toast } from "vue3-toastify";
 
 definePageMeta({
@@ -7,6 +8,7 @@ definePageMeta({
 
 const route = useRoute();
 const router = useRouter();
+const returnPath = computed(() => rentalReturnPath(route.query.returnTo));
 const auth = useAuth();
 
 watch(
@@ -14,7 +16,7 @@ watch(
   async (v) => {
     if (v !== "1") return;
     if (import.meta.server) return;
-    await router.replace({ path: route.path, query: {} });
+    await router.replace({ path: route.path, query: route.query.returnTo ? { returnTo: route.query.returnTo } : {} });
     await nextTick();
     toast("Войдите в аккаунт, чтобы открыть кабинет бизнеса.", {
       type: "warning",
@@ -61,7 +63,7 @@ async function submit() {
       }
     }
 
-    await navigateTo("/cabinet");
+    await navigateTo(returnPath.value);
   } finally {
     isLoading.value = false;
   }
@@ -70,27 +72,22 @@ async function submit() {
 const isGorodaivesiLoading = ref(false);
 
 async function gorodaivesiSubmit() {
-  errorMessage.value = "";
-  if (!form.email || !form.password) {
-    errorMessage.value =
-      "Введите email и пароль вашего аккаунта «Города и Веси».";
-    return;
-  }
+  if (isGorodaivesiLoading.value) return;
+  errorMessage.value = '';
   isGorodaivesiLoading.value = true;
   try {
-    const ok = await auth.gorodaivesiLogin(form.email, form.password);
-    if (!ok) {
-      toast("Не удалось войти через «Города и Веси». Проверьте данные.", {
-        type: "error",
-        autoClose: 6000,
-      });
-      return;
-    }
-    await navigateTo("/cabinet");
-  } finally {
+    const result = await useNuxtApp().$apiFetch<{ url: string }>('/auth/federation/start', {
+      method: 'POST', retry: 0, body: { returnPath: returnPath.value },
+    });
+    const target = new URL(result.url);
+    if (target.origin !== 'https://gorodaivesi.ru' || target.pathname !== '/federation/authorize') throw new Error('Invalid destination');
+    window.location.assign(target.href);
+  } catch {
+    errorMessage.value = 'Не удалось начать вход через «Города и Веси». Попробуйте ещё раз.';
     isGorodaivesiLoading.value = false;
   }
 }
+
 </script>
 
 <template>
@@ -140,7 +137,7 @@ async function gorodaivesiSubmit() {
           </v-col>
         </v-row>
 
-        <div v-if="errorMessage" class="text-error mb-3">{{ errorMessage }}</div>
+        <div v-if="errorMessage" class="text-error mb-3" role="alert">{{ errorMessage }}</div>
 
         <v-btn
           type="submit"
@@ -154,6 +151,7 @@ async function gorodaivesiSubmit() {
         </v-btn>
       </form>
 
+      <template v-if="!returnPath.startsWith('/federation/authorize')">
       <div class="auth-page__divider my-5">
         <span>или</span>
       </div>
@@ -161,19 +159,20 @@ async function gorodaivesiSubmit() {
       <v-btn
         variant="outlined"
         color="secondary"
-        class="gv-cta"
+        class="gv-cta auth-page__federation"
         block
         size="large"
         :loading="isGorodaivesiLoading"
+        :disabled="isGorodaivesiLoading || isLoading"
         @click="gorodaivesiSubmit"
       >
-        <v-icon start>mdi-sign-direction</v-icon>
-        Войти через «Города и Веси»
+        <img src="/gorodaivesi-logo.webp" alt="" width="48" height="36" class="auth-page__brand" />
+        <span>Войти через «Города и Веси»</span>
       </v-btn>
       <p class="auth-page__hint mt-2">
-        Введите email и пароль вашего аккаунта на gorodaivesi.ru — мы создадим
-        связанный профиль автоматически.
+        Вы перейдёте на gorodaivesi.ru для входа и вернётесь сюда.
       </p>
+      </template>
     </v-card>
   </section>
 </template>
@@ -211,4 +210,10 @@ async function gorodaivesiSubmit() {
   color: var(--gv-text-muted);
   line-height: 1.45;
 }
+</style>
+
+<style scoped>
+.auth-page__federation { height: auto !important; min-height: 48px; padding: 8px 12px; }
+.auth-page__federation :deep(.v-btn__content) { white-space: normal; line-height: 1.35; gap: 8px; }
+.auth-page__brand { object-fit: contain; flex-shrink: 0; }
 </style>
