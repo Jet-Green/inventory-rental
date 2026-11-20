@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { rentalHandoffQuery } from "~/utils/rentalHandoff";
+import { rentalHandoffQuery, rentalReturnPath } from "~/utils/rentalHandoff";
 definePageMeta({ path: "/auth/gorodaivesi" });
 const route = useRoute();
 const error = ref("");
@@ -9,8 +9,10 @@ onMounted(async () => {
   sessionStorage.setItem("rentalHandoffListing", listingId);
   sessionStorage.setItem(`rentalHandoffQuery:${listingId}`, JSON.stringify(rentalHandoffQuery(route.query)));
   try {
-    const result = await useNuxtApp().$apiFetch<{ url: string }>("/auth/gorodaivesi/start", { method: "POST", retry: 0, body: { listingId } });
-    window.location.replace(result.url);
+    const result = await useNuxtApp().$apiFetch<{ url: string }>("/auth/federation/start", { method: "POST", retry: 0, body: { returnPath: rentalReturnPath(`/rental-item/${listingId}?${new URLSearchParams(rentalHandoffQuery(route.query))}`) } });
+    const target = new URL(result.url);
+    if (target.origin !== 'https://gorodaivesi.ru' || target.pathname !== '/federation/authorize') throw new Error('Invalid destination');
+    window.location.replace(target.href);
   } catch { error.value = "Не удалось начать вход. Попробуйте ещё раз из карточки объекта."; }
 });
 </script>
