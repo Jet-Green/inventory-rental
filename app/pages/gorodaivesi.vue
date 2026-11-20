@@ -9,7 +9,7 @@ onMounted(async () => {
   sessionStorage.setItem("rentalHandoffListing", listingId);
   sessionStorage.setItem(`rentalHandoffQuery:${listingId}`, JSON.stringify(rentalHandoffQuery(route.query)));
   try {
-    const result = await useNuxtApp().$apiFetch<{ url: string }>("/auth/gorodaivesi/start", { method: "POST", body: { listingId } });
+    const result = await useNuxtApp().$apiFetch<{ url: string }>("/auth/gorodaivesi/start", { method: "POST", retry: 0, body: { listingId } });
     window.location.replace(result.url);
   } catch { error.value = "Не удалось начать вход. Попробуйте ещё раз из карточки объекта."; }
 });

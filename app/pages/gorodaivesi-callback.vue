@@ -4,6 +4,7 @@ definePageMeta({ path: "/auth/gorodaivesi/callback" });
 useHead({ meta: [{ name: "referrer", content: "no-referrer" }] });
 const error = ref("");
 const back = ref("/rental-items");
+const restart = ref("/rental-items");
 onMounted(async () => {
   const saved = sessionStorage.getItem("rentalHandoffListing");
   let query: Record<string, string> = {};
@@ -11,6 +12,7 @@ onMounted(async () => {
     try { query = rentalHandoffQuery(JSON.parse(sessionStorage.getItem(`rentalHandoffQuery:${saved}`) || "{}")); } catch {}
     const search = new URLSearchParams(query).toString();
     back.value = `/rental-item/${saved}` + (search ? `?${search}` : "");
+    restart.value = `/auth/gorodaivesi?${new URLSearchParams({ listingId: saved, ...query })}`;
   }
   const params = new URLSearchParams(window.location.hash.slice(1));
   const code = params.get("code");
@@ -21,7 +23,7 @@ onMounted(async () => {
     error.value = "Некорректная ссылка для входа."; return;
   }
   try {
-    const data = await useNuxtApp().$apiFetch<{ user: import("~/types/rental").IUserProfile; path: string }>("/auth/gorodaivesi/complete", { method: "POST", body: { code, state } });
+    const data = await useNuxtApp().$apiFetch<{ user: import("~/types/rental").IUserProfile; path: string }>("/auth/gorodaivesi/complete", { method: "POST", retry: 0, body: { code, state } });
     if (!/^\/rental-item\/[a-f0-9]{24}$/.test(data.path)) throw new Error("Invalid destination");
     useAuth().setUser(data.user);
     sessionStorage.removeItem("rentalHandoffListing");
@@ -31,4 +33,4 @@ onMounted(async () => {
   }
 });
 </script>
-<template><section class="page-container py-8"><h1>Вход в Аренду</h1><p>{{ error || "Завершаем вход…" }}</p><NuxtLink v-if="error" :to="`/auth?returnTo=${encodeURIComponent(back)}`">Войти в существующий аккаунт Аренды</NuxtLink><br><NuxtLink :to="back">Вернуться к объекту</NuxtLink></section></template>
+<template><section class="page-container py-8"><h1>Вход в Аренду</h1><p>{{ error || "Завершаем вход…" }}</p><NuxtLink v-if="error" :to="restart">Повторить вход через «Города и Веси»</NuxtLink><br><NuxtLink v-if="error" :to="`/auth?returnTo=${encodeURIComponent(back)}`">Войти в существующий аккаунт Аренды</NuxtLink><br><NuxtLink :to="back">Вернуться к объекту</NuxtLink></section></template>
