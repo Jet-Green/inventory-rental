@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { rentalReturnPath } from "~/utils/rentalHandoff";
 import { toast } from "vue3-toastify";
 
 definePageMeta({
@@ -7,6 +8,7 @@ definePageMeta({
 
 const route = useRoute();
 const router = useRouter();
+const returnPath = computed(() => rentalReturnPath(route.query.returnTo));
 const auth = useAuth();
 
 watch(
@@ -61,7 +63,7 @@ async function submit() {
       }
     }
 
-    await navigateTo("/cabinet");
+    await navigateTo(returnPath.value);
   } finally {
     isLoading.value = false;
   }
@@ -86,7 +88,7 @@ async function gorodaivesiSubmit() {
       });
       return;
     }
-    await navigateTo("/cabinet");
+    await navigateTo(returnPath.value);
   } finally {
     isGorodaivesiLoading.value = false;
   }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { rentalHandoffQuery } from "~/utils/rentalHandoff";
 import { useRentalItem } from "~/composables/useRentalItem";
 import { useRole } from "~/composables/useRole";
 
@@ -61,11 +62,11 @@ const bookingHint = computed(() => {
 function startBooking(): void {
   if (!currentListing.value) return;
   if (!isAuth.value) {
-    navigateTo("/auth");
+    navigateTo({ path: "/auth", query: { returnTo: `/rental-item/${id}?${new URLSearchParams(rentalHandoffQuery(route.query))}` } });
     return;
   }
   if (!isRenter.value && !isAdmin.value) return;
-  navigateTo(`/booking/${currentListing.value._id}`);
+  navigateTo({ path: `/booking/${currentListing.value._id}`, query: rentalHandoffQuery(route.query) });
 }
 
 useSeoMeta({
