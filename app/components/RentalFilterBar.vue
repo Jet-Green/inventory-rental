@@ -102,7 +102,7 @@ function formatDateRu(dateIso?: string): string {
       </v-btn>
     </div>
 
-    <div class="gv-filters__sort d-flex align-center ga-2 mt-3">
+    <div class="gv-filters__sort d-flex flex-wrap align-center ga-2 mt-3">
       <v-btn size="default" class="action-btn" :variant="modelValue.sortBy === 'priceAsc' ? 'flat' : 'outlined'"
         :color="modelValue.sortBy === 'priceAsc' ? 'primary' : undefined" @click="toggleSort('priceAsc')">
         Сначала дешевле
@@ -117,6 +117,7 @@ function formatDateRu(dateIso?: string): string {
 
 <style scoped>
 .gv-filters__field {
+  flex: 1 1 160px;
   width: 200px;
   max-width: 100%;
 }
@@ -129,4 +130,5 @@ function formatDateRu(dateIso?: string): string {
   flex: 1 1 280px;
   min-width: 200px;
 }
+@media(max-width:599px) { .gv-filters__field { flex-basis: 100%; width: 100%; } .gv-filters__sort .v-btn { font-size: 12px; flex: 1; } }
 </style>

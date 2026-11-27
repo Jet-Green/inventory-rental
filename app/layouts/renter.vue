@@ -39,7 +39,7 @@ function isActive(path: string): boolean {
           <v-btn variant="outlined" color="primary" class="gv-cta" @click="void openCabinetSelect()">
             Разместить объявление
           </v-btn>
-          
+
           <v-btn variant="text" class="action-btn" @click="auth.logout">Выйти</v-btn>
         </div>
       </div>

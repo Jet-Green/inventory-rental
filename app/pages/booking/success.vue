@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import dayjs from "dayjs";
 import { useBooking } from "~/composables/useBooking";
 
 definePageMeta({ middleware: "auth" });
@@ -13,7 +12,7 @@ onMounted(() => {
 });
 
 const displayId = computed(
-  () => lastBooking.value?.bookingId || `BRN-${dayjs().format("YYYY")}-009184`,
+  () => lastBooking.value?.bookingId || "—",
 );
 
 const totalLabel = computed(() => {
@@ -29,9 +28,9 @@ useSeoMeta({ title: "Бронь оформлена — Аренда инвент
   <div v-if="lastBooking" class="success-page pb-12 pt-4">
     <div class="gv-page-wide px-4 px-sm-6">
       <div class="gv-card-elevated pa-8 mx-auto success-page__card">
-        <v-icon icon="mdi-check-circle" size="48" color="success" class="mb-3" />
-        <h1 class="gv-display text-h5 mb-3">Бронь успешно оформлена</h1>
-        <p class="font-weight-semibold mb-4" style="color: var(--gv-text-secondary)">
+        <v-icon icon="mdi-check-circle" size="64" color="success" class="mb-3" />
+        <h1 class="gv-display text-h5 mb-3">Всё готово к вашей аренде</h1><p class="text-body-2 text-medium-emphasis mb-6">Бронь оформлена. Её статус и документы всегда доступны в кабинете.</p>
+        <p class="success-page__number font-weight-semibold mb-4" style="color: var(--gv-text-secondary)">
           Номер брони: {{ displayId }}
         </p>
         <div class="text-body-2 text-medium-emphasis d-flex flex-column ga-2 mb-5">
@@ -44,7 +43,7 @@ useSeoMeta({ title: "Бронь оформлена — Аренда инвент
         </div>
 
         <div class="success-page__docs pa-4 mb-5">
-          <p class="font-weight-semibold mb-2">Документы</p>
+          <p class="font-weight-semibold mb-2">Документы по бронированию</p><p v-if="!lastBooking.rentalAgreementPdfUrl && !lastBooking.agencyAgreementPdfUrl" class="text-body-2 text-medium-emphasis mb-0">Документы пока не сформированы. Проверьте их позже в кабинете.</p>
           <a
             v-if="lastBooking.rentalAgreementPdfUrl"
             :href="lastBooking.rentalAgreementPdfUrl"
@@ -79,7 +78,7 @@ useSeoMeta({ title: "Бронь оформлена — Аренда инвент
           to="/renter-cabinet/rentals"
         >
           Перейти в кабинет
-        </v-btn>
+        </v-btn><NuxtLink to="/listings" class="success-page__catalog">Выбрать ещё инвентарь <v-icon icon="mdi-arrow-right" size="18" /></NuxtLink>
       </div>
     </div>
   </div>
@@ -87,7 +86,9 @@ useSeoMeta({ title: "Бронь оформлена — Аренда инвент
 
 <style scoped>
 .success-page__card {
-  max-width: 720px;
+  max-width: 640px;
+  margin-top: 40px;
+  border-top: 4px solid var(--gv-available-text);
 }
 
 .success-page__docs {
@@ -95,4 +96,7 @@ useSeoMeta({ title: "Бронь оформлена — Аренда инвент
   border: 1px solid var(--gv-available-soft-border);
   border-radius: var(--gv-radius-card);
 }
+.success-page__number { overflow-wrap:anywhere; border-bottom:1px solid var(--gv-border-light); padding-bottom:20px; }
+.success-page__catalog { display:flex; justify-content:center; align-items:center; gap:10px; margin-top:20px; text-decoration:none; color:var(--gv-text-secondary); font-size:14px; }
+@media(max-width:599px) { .success-page__card { padding:22px !important; margin-top:12px; } }
 </style>

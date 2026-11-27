@@ -78,7 +78,7 @@ const dayCells = computed<ICalendarDayCell[]>(() => {
   }
 
   while (cells.length % 7 !== 0 || cells.length < 35) {
-    const date = startOfMonth.add(cells.length - leading - daysInMonth + 1, "day");
+    const date = startOfMonth.add(cells.length - leading, "day");
     cells.push({
       iso: date.format("YYYY-MM-DD"),
       dayLabel: date.date(),
@@ -264,7 +264,7 @@ watch(
         class="range-calendar__weekday text-caption text-medium-emphasis">
         {{ weekday }}
       </div>
-      <button v-for="cell in dayCells" :key="cell.iso" type="button" class="range-calendar__day" :class="{
+      <button v-for="cell in dayCells" :key="cell.iso" :aria-label="dayjs(cell.iso).format('D MMMM YYYY')" :aria-pressed="isRangeStart(cell.iso) || isRangeEnd(cell.iso)" :disabled="!cell.inCurrentMonth" type="button" class="range-calendar__day" :class="{
         'range-calendar__day--outside': !cell.inCurrentMonth,
         'range-calendar__day--today': cell.isToday,
         'range-calendar__day--can-pickup': cell.inCurrentMonth && canPickupOnDate(cell.iso),
@@ -501,4 +501,5 @@ watch(
     transform: translateX(0);
   }
 }
+@media(max-width:359px) { .range-calendar__edge-label { display:none; } }
 </style>

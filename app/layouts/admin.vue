@@ -34,7 +34,7 @@ const sectionTitle = computed(() => {
           <AppLogo :size="24" />
         </NuxtLink>
         <span class="admin-header-label">Управление</span>
-        
+
         <v-spacer />
         <v-btn variant="text" size="small" class="action-btn" to="/">На сайт</v-btn>
         <v-btn variant="text" size="small" class="action-btn" @click="auth.logout">Выйти</v-btn>

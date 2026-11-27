@@ -111,8 +111,7 @@ useSeoMeta({
 <template>
   <div class="home-catalog">
     <section class="home-catalog__hero-band">
-      <div class="gv-page-wide px-4 px-sm-6 pt-8 pb-6">
-        <span class="gv-sign-eyebrow mb-4">Каталог аренды</span>
+      <div class="gv-page-wide px-4 px-sm-6 pt-8 pb-6 home-catalog__intro"><div>
         <h1 class="home-catalog__hero gv-display mb-3">
           Всё, что нужно, —
           <span class="gv-hand home-catalog__hero-accent">напрокат</span>
@@ -120,16 +119,18 @@ useSeoMeta({
         <p class="home-catalog__lead mb-6">
           Спортивный инвентарь, детское снаряжение, техника для ОВЗ и походы —
           от местных арендодателей, с онлайн-бронированием и договором.
-        </p>
-      </div>
+        </p><NuxtLink to="/listings" class="home-catalog__browse">Выбрать снаряжение <v-icon icon="mdi-arrow-down-right" size="20" /></NuxtLink>
+      </div><div v-if="items.some(item => item.photos?.[0])" class="home-catalog__photos" aria-hidden="true"><img v-for="item in items.filter(item => item.photos?.[0]).slice(0, 2)" :key="item._id" :src="item.photos[0]" alt="" /></div></div>
     </section>
 
     <section class="gv-page-wide px-4 px-sm-6 pb-12 pt-6">
 
-      <div class="d-flex flex-column flex-md-row ga-3 mb-6 align-stretch">
+      <div class="home-catalog__search-panel d-flex flex-column flex-md-row ga-3 mb-6 align-stretch">
         <v-text-field
           v-model="searchLocal"
-          placeholder="Поиск по названию или категории…"
+          aria-label="Поиск инвентаря"
+          prepend-inner-icon="mdi-magnify"
+          placeholder="Что хотите взять напрокат?"
           variant="outlined"
           density="comfortable"
           hide-details
@@ -213,6 +214,7 @@ useSeoMeta({
         </button>
       </div>
 
+      <div class="home-catalog__results"><span aria-live="polite">{{ pagination.total }} объявлений</span></div>
       <v-progress-linear v-if="showLoading" indeterminate color="primary" class="mb-4" />
 
       <div v-if="showLoading && !items.length" class="card-grid">
@@ -280,4 +282,15 @@ useSeoMeta({
 .home-catalog__search :deep(.v-field) {
   border-radius: var(--gv-radius-input);
 }
+.home-catalog__intro { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: 48px; padding-bottom: 40px !important; }
+.home-catalog__photos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.home-catalog__photos img { width: 100%; height: 250px; object-fit: cover; border-radius: 100px 100px 16px 16px; }
+.home-catalog__photos img:nth-child(2) { margin-top: 34px; border-radius: 16px 16px 100px 100px; }
+.home-catalog__browse { display: inline-flex; align-items: center; gap: 12px; color: var(--gv-primary); font-weight: 700; text-decoration: none; }
+.home-catalog__search-panel { background: white; padding: 18px; border: 1px solid var(--gv-border-light); border-radius: var(--gv-radius-card); }
+.home-catalog__results { display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:12px; margin-bottom:24px; }
+.home-catalog__results span { color:var(--gv-text-secondary); font-size:14px; }
+@media(max-width:959px) { .home-catalog__intro { gap:24px; } .home-catalog__photos img { height:190px; } }
+@media(max-width:599px) { .home-catalog__intro { grid-template-columns:1fr; gap:22px; } .home-catalog__photos img { height:140px; border-radius:12px; } .home-catalog__photos img:nth-child(2) { margin-top:0; border-radius:12px; } .home-catalog__search-panel { padding:12px; } }
+.card-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
 </style>

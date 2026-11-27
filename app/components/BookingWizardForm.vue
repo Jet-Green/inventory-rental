@@ -569,7 +569,7 @@ async function pay(): Promise<void> {
   <div class="booking-wizard px-4 px-sm-6 py-6 gv-page-wide">
     <div class="d-flex flex-wrap align-center ga-3 mb-2">
       <v-btn variant="text" color="primary" size="small" class="action-btn" prepend-icon="mdi-arrow-left"
-        :to="`/rental-item/${listingId}`">
+        :to="{ path: `/rental-item/${listingId}`, query: rentalHandoffQuery(route.query) }">
         К объявлению
       </v-btn>
     </div>
@@ -582,9 +582,10 @@ async function pay(): Promise<void> {
     <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
 
     <template v-if="currentListing">
+      <div class="booking-wizard__layout"><div class="booking-wizard__form">
       <div class="d-flex flex-wrap ga-2 mb-6">
         <button v-for="s in steps" :key="s.n" type="button" class="step-pill text-caption px-3 py-2 border"
-          :class="step === s.n ? 'step-pill--active' : 'step-pill--idle'" @click="goToStep(s.n)">
+          :aria-current="step === s.n ? 'step' : undefined" :class="step === s.n ? 'step-pill--active' : 'step-pill--idle'" @click="goToStep(s.n)">
           {{ s.n }} {{ s.label }}
         </button>
       </div>
@@ -666,14 +667,13 @@ async function pay(): Promise<void> {
       </div>
 
       <div v-show="step === 3" class="max-w-screen-md">
-        <v-text-field v-model="contacts.fullName" placeholder="ФИО полностью" variant="outlined"
+        <v-text-field v-model="contacts.fullName" label="ФИО полностью" autocomplete="name" variant="outlined"
           class="mb-3" hide-details />
-        <v-text-field v-model="contacts.phone" placeholder="Телефон" variant="outlined" class="mb-3"
+        <v-text-field v-model="contacts.phone" label="Телефон" type="tel" autocomplete="tel" variant="outlined" class="mb-3"
           hide-details />
-        <v-text-field v-model="contacts.email" placeholder="E-mail" variant="outlined" class="mb-3"
+        <v-text-field v-model="contacts.email" label="E-mail" type="email" autocomplete="email" variant="outlined" class="mb-3"
           hide-details />
-        <v-text-field :model-value="`Способ получения: ${pickupLabel}`" variant="outlined" hide-details
-          readonly />
+        <p class="text-body-2 text-medium-emphasis">Способ получения: <span class="font-weight-semibold">{{ pickupLabel }}</span></p>
       </div>
 
       <div v-show="step === 4" class="max-w-screen-md">
@@ -714,7 +714,8 @@ async function pay(): Promise<void> {
         </v-btn>
       </div>
 
-      <p v-if="stepError" class="text-error mt-4">{{ stepError }}</p>
+      <p v-if="stepError" role="alert" class="text-error mt-4">{{ stepError }}</p>
+      </div><aside class="booking-wizard__summary gv-card-elevated"><v-img v-if="currentListing.photos?.[0]" :src="currentListing.photos[0]" :alt="currentListing.title" cover height="180" /><div class="pa-5"><h2 class="text-h6 mb-4">Ваш заказ</h2><p class="font-weight-semibold mb-4">{{ currentListing.title }}</p><p class="text-body-2 text-medium-emphasis mb-2">{{ selectionSummary }}</p><p v-if="startDateDisplay" class="text-body-2 mb-4">{{ startDateDisplay }} — {{ endDateDisplay }}</p><div class="booking-wizard__summary-price"><span>Предварительно</span><strong>{{ new Intl.NumberFormat('ru-RU').format(totalPrice) }} ₽</strong></div><p class="text-caption text-medium-emphasis mt-3">Проверьте период и количество перед оформлением.</p></div></aside></div>
     </template>
 
     <p v-else-if="!isLoading" class="text-medium-emphasis">
@@ -784,4 +785,12 @@ async function pay(): Promise<void> {
 .booking-wizard__date-chip {
   border-radius: var(--gv-radius-chip) !important;
 }
+.booking-wizard__layout { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:40px; align-items:start; }
+.booking-wizard__form { min-width:0; background:white; padding:28px; border:1px solid var(--gv-border-light); border-radius:var(--gv-radius-card); }
+.booking-wizard__summary { position:sticky; top:24px; overflow:hidden; }
+.booking-wizard__summary-price { border-top:1px solid var(--gv-border-light); padding-top:18px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:14px; }
+.booking-wizard__summary-price strong { font-size:24px; }
+.step-pill { min-height:44px; }
+@media(max-width:959px) { .booking-wizard__layout { grid-template-columns:minmax(0,1fr); gap:24px; } .booking-wizard__summary { position:static; } }
+@media(max-width:599px) { .booking-wizard__form { padding:16px; } .booking-wizard__thumb { width:70px; min-width:70px; height:70px; } }
 </style>
