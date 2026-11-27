@@ -173,6 +173,7 @@ function isActive(path: string): boolean {
 }
 
 .cabinet-shell__main {
+  flex: 1 1 0%;
   min-width: 0;
   background: var(--gv-bg-page);
 }
