@@ -101,7 +101,7 @@ useSeoMeta({
           <p class="listing-page__price">{{ new Intl.NumberFormat('ru-RU').format(currentListing.pricePerDay) }} ₽ <span>/ день</span></p>
           <p class="text-body-2 text-medium-emphasis mb-5">Выберите период на следующем шаге</p>
           <dl class="listing-page__facts"><div><dt>Минимальный срок</dt><dd>{{ currentListing.minDays }} дн.</dd></div><div><dt>В наличии</dt><dd>{{ currentListing.unitsAvailable }} ед.</dd></div><div><dt>Получение</dt><dd>{{ pickupLabel }}</dd></div></dl>
-          <v-btn block color="primary" class="gv-cta" size="large" :disabled="(!!bookingHint && isAuth) || currentListing.unitsAvailable < 1" @click="startBooking">{{ currentListing.unitsAvailable < 1 ? 'Нет в наличии' : 'Забронировать' }}</v-btn>
+          <v-btn block color="primary" class="gv-cta" size="large" :disabled="!!bookingHint && isAuth" @click="startBooking">Забронировать</v-btn>
           <p v-if="bookingHint" class="text-caption text-medium-emphasis mt-3">{{ bookingHint }}</p>
           <div class="listing-page__next"><v-icon icon="mdi-file-document-outline" size="20" /><span>Период, проверка заказа и контакты — всё в одном оформлении.</span></div>
         </aside>
