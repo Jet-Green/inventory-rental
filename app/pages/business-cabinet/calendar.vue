@@ -9,8 +9,17 @@ import type { IBookingItem } from "~/types/rental";
 
 const { bookings, fetchOwnerBookings, isLoading } = useOwnerBookings();
 
+const loadError = ref(false);
+async function load(): Promise<void> {
+  loadError.value = false;
+  try {
+    await fetchOwnerBookings();
+  } catch {
+    loadError.value = true;
+  }
+}
 onMounted(() => {
-  void fetchOwnerBookings();
+  void load();
 });
 
 /** Текущий отображаемый месяц (первое число). */
@@ -30,9 +39,30 @@ const monthLabel = computed(() => {
   return raw.replace(/^./, (c) => c.toUpperCase());
 });
 
+const listingFilter = ref("");
+const listingOptions = computed(() => [
+  { title: "Все объявления", value: "" },
+  ...Array.from(
+    new Map(
+      bookings.value
+        .filter((b) => b.listingId?._id)
+        .map((b) => [
+          b.listingId._id,
+          { title: b.listingId.title, value: b.listingId._id },
+        ]),
+    ).values(),
+  ),
+]);
+watch(listingFilter, () => {
+  selectedDate.value = "";
+});
 /** Брони, занимающие календарь (всё, кроме отменённых). */
 const activeBookings = computed(() =>
-  bookings.value.filter((b) => b.status !== "cancelled"),
+  bookings.value.filter(
+    (b) =>
+      b.status !== "cancelled" &&
+      (!listingFilter.value || b.listingId?._id === listingFilter.value),
+  ),
 );
 
 function dayValue(iso?: string): number {
@@ -88,7 +118,10 @@ const selectedLabel = computed(() =>
 );
 
 function prevMonth(): void {
-  cursor.value = month.value.subtract(1, "month").startOf("month").toISOString();
+  cursor.value = month.value
+    .subtract(1, "month")
+    .startOf("month")
+    .toISOString();
   selectedDate.value = "";
 }
 
@@ -119,90 +152,149 @@ function renterLine(b: IBookingItem): string {
 </script>
 
 <template>
-  <div class="px-4 px-sm-6 py-8">
+  <div class="business-page px-4 px-sm-6 py-8">
     <h1 class="gv-display text-h4 mb-2">Календарь</h1>
     <p class="text-body-2 text-medium-emphasis mb-6">
       Занятость по вашим объявлениям. Дни с бронями выделены — нажмите, чтобы
       увидеть детали.
     </p>
 
-    <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
+    <v-alert
+      v-if="loadError"
+      type="error"
+      variant="tonal"
+      class="mb-4"
+      title="Не удалось загрузить данные"
+    >
+      <v-btn variant="text" :disabled="isLoading" @click="load"
+        >Повторить</v-btn
+      >
+    </v-alert>
+    <div class="business-toolbar">
+      <v-select
+        v-model="listingFilter"
+        :items="listingOptions"
+        label="Объявление"
+        hide-details
+      /><NuxtLink to="/business-cabinet/bookings" class="gv-link"
+        >Все брони</NuxtLink
+      >
+    </div>
+    <v-progress-linear
+      v-if="isLoading"
+      indeterminate
+      color="primary"
+      class="mb-4"
+    />
 
-    <div class="gv-card-elevated pa-4 pa-sm-5">
-      <div class="d-flex align-center justify-space-between mb-4">
-        <v-btn icon="mdi-chevron-left" variant="text" @click="prevMonth" />
-        <div class="text-center">
-          <p class="text-subtitle-1 font-weight-bold mb-0">
-            {{ monthLabel }}
-          </p>
-          <button class="calendar__today-link" type="button" @click="goToday">
-            Сегодня
+    <div class="business-split calendar-workspace">
+      <div class="business-panel calendar-board">
+        <div class="d-flex align-center justify-space-between mb-4">
+          <v-btn
+            icon="mdi-chevron-left"
+            variant="text"
+            aria-label="Предыдущий месяц"
+            @click="prevMonth"
+          />
+          <div class="text-center">
+            <p class="text-subtitle-1 font-weight-bold mb-0">
+              {{ monthLabel }}
+            </p>
+            <button class="calendar__today-link" type="button" @click="goToday">
+              Сегодня
+            </button>
+          </div>
+          <v-btn
+            icon="mdi-chevron-right"
+            variant="text"
+            aria-label="Следующий месяц"
+            @click="nextMonth"
+          />
+        </div>
+
+        <div class="calendar__weekdays">
+          <span v-for="w in WEEKDAYS" :key="w" class="calendar__weekday">{{
+            w
+          }}</span>
+        </div>
+
+        <div class="calendar__grid">
+          <button
+            v-for="cell in cells"
+            :key="cell.date"
+            type="button"
+            class="calendar__cell"
+            :class="{
+              'calendar__cell--muted': !cell.inMonth,
+              'calendar__cell--busy': cell.count > 0,
+              'calendar__cell--today': cell.isToday,
+              'calendar__cell--selected': cell.date === selectedDate,
+            }"
+            :aria-label="`${cell.date}: броней ${cell.count}`"
+            :aria-pressed="cell.date === selectedDate"
+            :disabled="!cell.count"
+            @click="selectDay(cell)"
+          >
+            <span class="calendar__day">{{ cell.day }}</span>
+            <span v-if="cell.count" class="calendar__badge">{{
+              cell.count
+            }}</span>
           </button>
         </div>
-        <v-btn icon="mdi-chevron-right" variant="text" @click="nextMonth" />
-      </div>
 
-      <div class="calendar__weekdays">
-        <span v-for="w in WEEKDAYS" :key="w" class="calendar__weekday">{{ w }}</span>
-      </div>
-
-      <div class="calendar__grid">
-        <button
-          v-for="cell in cells"
-          :key="cell.date"
-          type="button"
-          class="calendar__cell"
-          :class="{
-            'calendar__cell--muted': !cell.inMonth,
-            'calendar__cell--busy': cell.count > 0,
-            'calendar__cell--today': cell.isToday,
-            'calendar__cell--selected': cell.date === selectedDate,
-          }"
-          :disabled="!cell.count"
-          @click="selectDay(cell)"
-        >
-          <span class="calendar__day">{{ cell.day }}</span>
-          <span v-if="cell.count" class="calendar__badge">{{ cell.count }}</span>
-        </button>
-      </div>
-
-      <div class="calendar__legend mt-4">
-        <span class="calendar__legend-item">
-          <span class="calendar__dot calendar__dot--busy" /> есть брони
-        </span>
-        <span class="calendar__legend-item">
-          <span class="calendar__dot calendar__dot--today" /> сегодня
-        </span>
-      </div>
-    </div>
-
-    <div v-if="selectedDate" class="mt-5">
-      <h2 class="text-subtitle-1 font-weight-semibold mb-3">
-        Брони на {{ selectedLabel }}
-      </h2>
-      <div class="d-flex flex-column ga-3">
-        <div
-          v-for="b in selectedBookings"
-          :key="b._id"
-          class="gv-card-elevated pa-4"
-        >
-          <div class="d-flex flex-wrap align-center justify-space-between ga-2 mb-1">
-            <p class="font-weight-semibold mb-0">
-              {{ b.listingId?.title || "Объявление" }}
-            </p>
-            <StatusChip :status="b.status" type="booking" />
-          </div>
-          <p class="text-caption text-medium-emphasis mb-0">
-            {{ renterLine(b) }} ·
-            {{ b.dateFrom?.slice(0, 10) }} — {{ b.dateTo?.slice(0, 10) }} ·
-            {{ b.units }} шт.
-          </p>
+        <div class="calendar__legend mt-4">
+          <span class="calendar__legend-item">
+            <span class="calendar__dot calendar__dot--busy" /> есть брони
+          </span>
+          <span class="calendar__legend-item">
+            <span class="calendar__dot calendar__dot--today" /> сегодня
+          </span>
         </div>
       </div>
-    </div>
 
+      <section class="business-panel calendar-details">
+        <template v-if="selectedDate">
+          <h2 class="text-subtitle-1 font-weight-semibold mb-3">
+            Брони на {{ selectedLabel }}
+          </h2>
+          <div class="d-flex flex-column ga-3">
+            <div
+              v-for="b in selectedBookings"
+              :key="b._id"
+              class="gv-card-elevated pa-4"
+            >
+              <div
+                class="d-flex flex-wrap align-center justify-space-between ga-2 mb-1"
+              >
+                <p class="font-weight-semibold mb-0">
+                  {{ b.listingId?.title || "Объявление" }}
+                </p>
+                <StatusChip :status="b.status" type="booking" />
+              </div>
+              <p class="text-caption text-medium-emphasis mb-0">
+                {{ renterLine(b) }} · {{ b.dateFrom?.slice(0, 10) }} —
+                {{ b.dateTo?.slice(0, 10) }} · {{ b.units }} шт.
+              </p>
+            </div>
+          </div>
+        </template>
+        <template v-else
+          ><h2 class="text-h6 mb-3">Брони по дням</h2>
+          <p class="business-muted mb-0">
+            Выберите выделенный день в календаре, чтобы увидеть оборудование и
+            арендаторов.
+          </p></template
+        >
+        <p
+          v-if="selectedDate && !selectedBookings.length"
+          class="business-muted mb-0"
+        >
+          На выбранный день броней нет.
+        </p>
+      </section>
+    </div>
     <EmptyState
-      v-else-if="!isLoading && !activeBookings.length"
+      v-if="!isLoading && !loadError && !activeBookings.length"
       class="mt-5"
       title="Броней пока нет"
       description="Когда появятся брони по вашим объявлениям, они отобразятся в календаре."
@@ -211,6 +303,29 @@ function renterLine(b: IBookingItem): string {
 </template>
 
 <style scoped>
+.calendar-workspace {
+  grid-template-columns: minmax(0, 1.65fr) minmax(260px, 1fr);
+}
+.calendar-details h2 {
+  font-size: 18px !important;
+}
+.calendar-board {
+  padding: 20px;
+}
+@media (max-width: 1200px) {
+  .calendar-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .calendar-board {
+    padding: 12px 8px;
+  }
+  .calendar__grid {
+    gap: 3px !important;
+  }
+}
+
 .calendar__today-link {
   font-size: 12px;
   color: var(--gv-primary);
@@ -246,7 +361,9 @@ function renterLine(b: IBookingItem): string {
   border-radius: 6px;
   background: var(--gv-card-bg);
   cursor: default;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 @media (max-width: 600px) {

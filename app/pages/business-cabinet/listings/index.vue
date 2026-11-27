@@ -21,6 +21,7 @@ const {
   isLoading,
 } = useMyListings();
 
+const search = ref("");
 const statusFilter = ref<ListingStatus | "all">("all");
 const deleteDialogOpen = ref(false);
 const deleteTargetId = ref("");
@@ -51,8 +52,14 @@ const STATUS_FILTERS: Array<{ value: ListingStatus | "all"; label: string }> = [
   { value: "hidden", label: "Скрыто" },
 ];
 
-onMounted(async () => {
-  void fetchMyListings();
+const loadError = ref(false);
+async function load(): Promise<void> {
+  loadError.value = false;
+  try {
+    await fetchMyListings();
+  } catch {
+    loadError.value = true;
+  }
   void fetchActiveBookings();
   try {
     const { categories: list } = await CategoryApi.getVisible();
@@ -60,11 +67,20 @@ onMounted(async () => {
   } catch {
     categories.value = [];
   }
+}
+onMounted(() => {
+  void load();
 });
 
 const filteredListings = computed(() => {
-  if (statusFilter.value === "all") return listings.value;
-  return listings.value.filter((l) => l.moderationStatus === statusFilter.value);
+  return listings.value.filter(
+    (l) =>
+      (statusFilter.value === "all" ||
+        l.moderationStatus === statusFilter.value) &&
+      l.title
+        .toLocaleLowerCase()
+        .includes((search.value || "").trim().toLocaleLowerCase()),
+  );
 });
 
 function priceLabel(price: number): string {
@@ -73,8 +89,12 @@ function priceLabel(price: number): string {
 
 /** Отправка черновика/отклонённого объявления на модерацию (draft|rejected → pending). */
 async function onSubmitModeration(id: string): Promise<void> {
+  if (actingId.value) return;
   await submitModeration(id);
-  toast("Объявление отправлено на модерацию.", { type: "success", autoClose: 4000 });
+  toast("Объявление отправлено на модерацию.", {
+    type: "success",
+    autoClose: 4000,
+  });
 }
 
 function openDelete(id: string, title: string): void {
@@ -84,6 +104,7 @@ function openDelete(id: string, title: string): void {
 }
 
 async function confirmDelete(): Promise<void> {
+  if (actingId.value) return;
   if (!deleteTargetId.value) return;
   await removeListing(deleteTargetId.value);
   deleteDialogOpen.value = false;
@@ -94,7 +115,9 @@ function openEdit(item: IRentalListing): void {
   editTargetId.value = item._id;
   editForm.title = item.title;
   editForm.description = item.description;
-  editForm.categories = [...(item.categories || [])];
+  editForm.categories = (item.categories || []).map((category) =>
+    typeof category === "string" ? category : category.key,
+  );
   editForm.pricePerDay = item.pricePerDay;
   editForm.minDays = item.minDays;
   editForm.unitsTotal = item.unitsTotal;
@@ -105,6 +128,7 @@ function openEdit(item: IRentalListing): void {
 }
 
 async function saveEdit(): Promise<void> {
+  if (actingId.value) return;
   if (!editTargetId.value) return;
   await updateListing(editTargetId.value, {
     title: editForm.title,
@@ -118,13 +142,17 @@ async function saveEdit(): Promise<void> {
     deliveryZone: editForm.deliveryZone || undefined,
   });
   editDialogOpen.value = false;
-  toast("Объявление обновлено. Опубликованное отправлено на повторную модерацию.", {
-    type: "success",
-    autoClose: 5000,
-  });
+  toast(
+    "Объявление обновлено. Опубликованное отправлено на повторную модерацию.",
+    {
+      type: "success",
+      autoClose: 5000,
+    },
+  );
 }
 
 async function onToggleVisibility(item: IRentalListing): Promise<void> {
+  if (actingId.value) return;
   const hide = item.moderationStatus === "active";
   await setVisibility(item._id, hide);
   toast(hide ? "Объявление скрыто." : "Объявление снова опубликовано.", {
@@ -135,8 +163,7 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
 </script>
 
 <template>
-  <div class="px-4 px-sm-6 py-6">
-    <span class="gv-sign-eyebrow mb-3">ОБЪЯВЛЕНИЯ</span>
+  <div class="business-page px-4 px-sm-6 py-6">
     <div class="d-flex flex-wrap align-center justify-space-between ga-4 mb-4">
       <h1 class="gv-display text-h4">Мои объявления</h1>
       <v-btn to="/business-cabinet/listings/new" color="primary" class="gv-cta">
@@ -144,26 +171,52 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
       </v-btn>
     </div>
 
-    <v-chip-group v-model="statusFilter" mandatory class="mb-4">
-      <v-chip
-        v-for="opt in STATUS_FILTERS"
-        :key="opt.value"
-        :value="opt.value"
-        size="small"
-        :variant="statusFilter === opt.value ? 'flat' : 'outlined'"
-        :color="statusFilter === opt.value ? 'primary' : undefined"
+    <v-alert
+      v-if="loadError"
+      type="error"
+      variant="tonal"
+      class="mb-4"
+      title="Не удалось загрузить данные"
+    >
+      <v-btn variant="text" :disabled="isLoading" @click="load"
+        >Повторить</v-btn
       >
-        {{ opt.label }}
-      </v-chip>
-    </v-chip-group>
+    </v-alert>
+    <div class="business-toolbar">
+      <v-text-field
+        v-model="search"
+        label="Найти оборудование"
+        prepend-inner-icon="mdi-magnify"
+        hide-details
+        clearable
+        @click:clear="search = ''"
+      />
+      <v-chip-group v-model="statusFilter" mandatory class="mb-4">
+        <v-chip
+          v-for="opt in STATUS_FILTERS"
+          :key="opt.value"
+          :value="opt.value"
+          size="small"
+          :variant="statusFilter === opt.value ? 'flat' : 'outlined'"
+          :color="statusFilter === opt.value ? 'primary' : undefined"
+        >
+          {{ opt.label }}
+        </v-chip>
+      </v-chip-group>
+    </div>
 
-    <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
+    <v-progress-linear
+      v-if="isLoading"
+      indeterminate
+      color="primary"
+      class="mb-4"
+    />
 
     <div v-if="filteredListings.length" class="d-flex flex-column ga-4">
       <div
         v-for="item in filteredListings"
         :key="item._id"
-        class="gv-card-elevated pa-4 d-flex flex-wrap ga-4 align-center"
+        class="business-panel listing-row"
       >
         <div
           class="listing-row__img"
@@ -173,14 +226,17 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
               : undefined
           "
         />
-        <div class="flex-grow-1" style="min-width: 200px">
+        <div class="listing-row__details">
           <p class="font-weight-semibold mb-1">{{ item.title }}</p>
           <div class="d-flex align-center ga-2 mb-1 flex-wrap">
-            <span class="text-caption text-medium-emphasis">{{ priceLabel(item.pricePerDay) }}</span>
+            <span class="text-caption text-medium-emphasis">{{
+              priceLabel(item.pricePerDay)
+            }}</span>
             <StatusChip :status="item.moderationStatus" type="listing" />
           </div>
           <p class="text-caption text-disabled mb-0">
-            Активных броней: {{ activeBookingsByListing[item._id] ?? 0 }}
+            {{ item.unitsTotal }} шт. · Активных броней:
+            {{ activeBookingsByListing[item._id] ?? 0 }}
           </p>
           <p
             v-if="item.moderationStatus === 'rejected' && item.rejectionReason"
@@ -189,7 +245,7 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
             Причина: {{ item.rejectionReason }}
           </p>
         </div>
-        <div class="d-flex ga-2 flex-wrap">
+        <div class="listing-row__actions d-flex ga-2 flex-wrap">
           <v-btn
             variant="outlined"
             color="primary"
@@ -210,7 +266,10 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
             Редактировать
           </v-btn>
           <v-btn
-            v-if="item.moderationStatus === 'draft' || item.moderationStatus === 'rejected'"
+            v-if="
+              item.moderationStatus === 'draft' ||
+              item.moderationStatus === 'rejected'
+            "
             variant="outlined"
             color="primary"
             class="gv-cta"
@@ -221,7 +280,10 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
             На модерацию
           </v-btn>
           <v-btn
-            v-if="item.moderationStatus === 'active' || item.moderationStatus === 'hidden'"
+            v-if="
+              item.moderationStatus === 'active' ||
+              item.moderationStatus === 'hidden'
+            "
             variant="outlined"
             color="primary"
             class="gv-cta"
@@ -254,16 +316,22 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
     </div>
 
     <EmptyState
-      v-else-if="!isLoading"
-      title="Объявлений пока нет"
-      description="Добавьте первое объявление, чтобы начать сдавать оборудование в аренду."
+      v-else-if="!isLoading && !loadError"
+      :title="listings.length ? 'Объявления не найдены' : 'Объявлений пока нет'"
+      :description="
+        listings.length
+          ? 'Измените поиск или статус.'
+          : 'Добавьте первое объявление, чтобы начать сдавать оборудование в аренду.'
+      "
       action-title="Добавить объявление"
       @action="navigateTo('/business-cabinet/listings/new')"
     />
 
     <v-dialog v-model="editDialogOpen" max-width="560">
       <v-card class="pa-2 gv-modal">
-        <v-card-title class="text-h6 gv-display pa-4 pb-2">Редактировать объявление</v-card-title>
+        <v-card-title class="text-h6 gv-display pa-4 pb-2"
+          >Редактировать объявление</v-card-title
+        >
         <v-card-text class="pa-4 pt-2">
           <v-text-field
             v-model="editForm.title"
@@ -348,13 +416,19 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
             hide-details
           />
           <p class="text-caption text-medium-emphasis mt-3 mb-0">
-            Фото и календарь доступности редактируются при пересоздании объявления.
-            Опубликованное объявление после правок уходит на повторную модерацию.
+            Фото и календарь доступности редактируются при пересоздании
+            объявления. Опубликованное объявление после правок уходит на
+            повторную модерацию.
           </p>
         </v-card-text>
         <v-card-actions class="pa-4 pt-0">
           <v-spacer />
-          <v-btn variant="text" class="action-btn" @click="editDialogOpen = false">Отмена</v-btn>
+          <v-btn
+            variant="text"
+            class="action-btn"
+            @click="editDialogOpen = false"
+            >Отмена</v-btn
+          >
           <v-btn
             color="primary"
             class="gv-cta"
@@ -369,13 +443,21 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
 
     <v-dialog v-model="deleteDialogOpen" max-width="440">
       <v-card class="pa-2 gv-modal">
-        <v-card-title class="text-h6 gv-display pa-4 pb-2">Удалить объявление</v-card-title>
+        <v-card-title class="text-h6 gv-display pa-4 pb-2"
+          >Удалить объявление</v-card-title
+        >
         <v-card-text class="pa-4 pt-2 text-body-2 text-medium-emphasis">
-          Объявление «{{ deleteTargetTitle }}» будет удалено без возможности восстановления.
+          Объявление «{{ deleteTargetTitle }}» будет удалено без возможности
+          восстановления.
         </v-card-text>
         <v-card-actions class="pa-4 pt-0">
           <v-spacer />
-          <v-btn variant="text" class="action-btn" @click="deleteDialogOpen = false">Отмена</v-btn>
+          <v-btn
+            variant="text"
+            class="action-btn"
+            @click="deleteDialogOpen = false"
+            >Отмена</v-btn
+          >
           <v-btn
             color="error"
             class="gv-cta"
@@ -391,9 +473,34 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
 </template>
 
 <style scoped>
+.listing-row {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px 20px;
+}
+.listing-row__details {
+  min-width: 0;
+}
+.listing-row__actions {
+  grid-column: 2;
+}
+@media (max-width: 600px) {
+  .listing-row {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .listing-row__actions {
+    grid-column: 1 / -1;
+  }
+  .listing-row__actions .v-btn {
+    flex: 1 1 110px;
+  }
+}
+
 .listing-row__img {
-  width: 140px;
-  height: 100px;
+  width: 100%;
+  aspect-ratio: 1;
   background: var(--gv-border-light);
   border-radius: var(--gv-radius-thumb);
   background-size: cover;
