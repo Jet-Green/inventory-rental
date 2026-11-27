@@ -24,6 +24,7 @@ defineProps<{ title: string }>();
 .account-panel__body { display: grid; gap: 14px; min-width: 0; }
 .account-panel__body :deep(p) { line-height: 1.55; }
 .account-panel__body :deep(a:not(.v-btn)) { color: #146a81; text-underline-offset: 3px; }
-.account-panel__body :deep([role="alert"]) { padding: 12px 14px; background: #fff3ef; border-radius: 8px; }
+.account-panel__body :deep(p[role="alert"]),
+.account-panel__body :deep(.text-error[role="alert"]) { padding: 12px 14px; background: #fff3ef; border-radius: 8px; }
 .account-panel__body :deep(.v-btn) { letter-spacing: normal; text-transform: none; }
 </style>
