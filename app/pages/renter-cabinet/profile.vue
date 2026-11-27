@@ -3,6 +3,7 @@ definePageMeta({
   middleware: ["auth", "renter", "cabinet-layout"],
 });
 
+import { toast } from "vue3-toastify";
 import { useAuthProfile } from "~/composables/useAuthProfile";
 import { useMyOrganization } from "~/composables/useMyOrganization";
 
@@ -34,14 +35,28 @@ onMounted(async () => {
   }
 });
 
+const isSaving = ref(false);
+const isVerifying = ref(false);
+async function confirmProfile(): Promise<void> {
+  if (isVerifying.value) return;
+  isVerifying.value = true;
+  try { await verifyRenter(); toast("Профиль подтверждён", { type: "success" }); }
+  catch { toast("Не удалось подтвердить профиль. Попробуйте ещё раз.", { type: "error" }); }
+  finally { isVerifying.value = false; }
+}
 async function saveProfile(): Promise<void> {
-  await updateProfile({
+  if (isSaving.value) return;
+  isSaving.value = true;
+  try { await updateProfile({
     fullName: form.fullName,
     email: form.email,
     phone: form.phone,
     address: form.address,
     passport: form.passport,
   });
+  toast("Профиль сохранён", { type: "success" });
+  } catch { toast("Не удалось сохранить профиль. Попробуйте ещё раз.", { type: "error" }); }
+  finally { isSaving.value = false; }
 }
 
 /** Цвета берём из темы бренда, а не из палитры Material. */
@@ -66,8 +81,7 @@ const showVerificationCta = computed(() => {
 </script>
 
 <template>
-  <div class="px-4 px-sm-6 py-8">
-    <span class="gv-sign-eyebrow mb-3">ПРОФИЛЬ</span>
+  <div class="private-page px-4 px-sm-6 py-8">
     <h1 class="gv-display text-h4 mb-6">Профиль</h1>
     <v-row>
       <v-col cols="12" md="7">
@@ -76,13 +90,13 @@ const showVerificationCta = computed(() => {
           <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-3" />
           <v-row dense>
             <v-col cols="12">
-              <v-text-field v-model="form.fullName" label="ФИО" variant="outlined" />
+              <v-text-field v-model="form.fullName" label="ФИО" autocomplete="name" variant="outlined" />
             </v-col>
             <v-col cols="12" md="6">
-              <v-text-field v-model="form.email" label="Email" variant="outlined" />
+              <v-text-field v-model="form.email" type="email" autocomplete="email" label="Email" variant="outlined" />
             </v-col>
             <v-col cols="12" md="6">
-              <v-text-field v-model="form.phone" label="Телефон" variant="outlined" />
+              <v-text-field v-model="form.phone" type="tel" autocomplete="tel" label="Телефон" variant="outlined" />
             </v-col>
             <v-col cols="12">
               <v-text-field v-model="form.address" label="Адрес" variant="outlined" />
@@ -95,7 +109,7 @@ const showVerificationCta = computed(() => {
               />
             </v-col>
           </v-row>
-          <v-btn color="primary" class="gv-cta mt-2" @click="saveProfile">
+          <v-btn color="primary" class="gv-cta mt-2" :loading="isSaving" :disabled="isLoading" @click="saveProfile">
             Сохранить профиль
           </v-btn>
         </div>
@@ -103,7 +117,7 @@ const showVerificationCta = computed(() => {
       <v-col cols="12" md="5">
         <div class="gv-card-elevated pa-5 mb-4">
           <h2 class="text-h6 mb-3">Верификация</h2>
-          <div class="d-flex align-center justify-space-between mb-3">
+          <div class="profile-status">
             <span>Организация (бизнес)</span>
             <v-chip :color="businessStatusMeta.color" size="small" variant="tonal">
               {{ businessStatusMeta.text }}
@@ -124,7 +138,7 @@ const showVerificationCta = computed(() => {
           >
             Комментарий: {{ organization.moderatorComment }}
           </div>
-          <div class="d-flex align-center justify-space-between mb-3">
+          <div class="profile-status">
             <span>Подтверждение профиля</span>
             <v-chip :color="profile?.isRenterVerified ? 'success' : 'warning'" size="small" variant="tonal">
               {{ profile?.isRenterVerified ? "Подтвержден" : "Не подтвержден" }}
@@ -135,7 +149,7 @@ const showVerificationCta = computed(() => {
             variant="outlined"
             color="primary"
             class="gv-cta"
-            @click="verifyRenter"
+            :loading="isVerifying" :disabled="isLoading" @click="confirmProfile"
           >
             Подтвердить профиль
           </v-btn>
@@ -144,3 +158,7 @@ const showVerificationCta = computed(() => {
     </v-row>
   </div>
 </template>
+
+<style scoped>
+.profile-status { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding-block: 16px; border-bottom: 1px solid var(--gv-border-light); margin-bottom: 16px; font-size: 14px; }
+</style>

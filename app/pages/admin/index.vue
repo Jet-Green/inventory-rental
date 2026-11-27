@@ -45,8 +45,7 @@ function managersLine(managers: unknown): string {
 </script>
 
 <template>
-  <div class="px-5 py-6">
-    <span class="gv-sign-eyebrow mb-3">ОБЗОР</span>
+  <div class="private-page px-5 py-6">
     <h1 class="gv-display text-h4 mb-6">Дашборд</h1>
     <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
 
@@ -80,7 +79,7 @@ function managersLine(managers: unknown): string {
     <v-row>
       <v-col cols="12" md="4">
         <div class="gv-card-elevated pa-4">
-          <p class="text-body-2 font-weight-semibold mb-3">Объявления на модерации</p>
+          <NuxtLink to="/admin/moderation" class="dashboard-section-link">Объявления на модерации <v-icon icon="mdi-arrow-top-right" size="18" /></NuxtLink>
           <p
             v-for="item in pendingModeration"
             :key="item._id"
@@ -95,7 +94,7 @@ function managersLine(managers: unknown): string {
       </v-col>
       <v-col cols="12" md="4">
         <div class="gv-card-elevated pa-4">
-          <p class="text-body-2 font-weight-semibold mb-3">Новые пользователи</p>
+          <NuxtLink to="/admin/users" class="dashboard-section-link">Новые пользователи <v-icon icon="mdi-arrow-top-right" size="18" /></NuxtLink>
           <p
             v-for="org in organizationVerificationRequests.slice(0, 3)"
             :key="org._id"
@@ -138,6 +137,7 @@ function managersLine(managers: unknown): string {
           </tr>
         </thead>
         <tbody>
+          <tr v-if="!isLoading && !organizationVerificationRequests.length"><td colspan="5" class="text-center text-medium-emphasis py-8">Нет заявок на верификацию</td></tr>
           <tr v-for="org in organizationVerificationRequests" :key="org._id">
             <td>{{ org.companyName || "—" }}</td>
             <td>{{ org.inn || "—" }}</td>
@@ -171,3 +171,7 @@ function managersLine(managers: unknown): string {
     </v-card>
   </div>
 </template>
+
+<style scoped>
+.dashboard-section-link { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 20px; font-size: 14px; font-weight: 600; text-decoration: none; color: var(--gv-text-primary); }
+</style>
