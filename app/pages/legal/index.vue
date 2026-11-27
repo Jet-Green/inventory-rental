@@ -9,7 +9,6 @@ useSeoMeta({
 
 <template>
   <div class="gv-page-wide px-4 px-sm-6 py-8 legal-index">
-    <span class="gv-sign-eyebrow mb-3">Документы</span>
     <h1 class="gv-display legal-index__title mb-2">Правовая информация</h1>
     <p class="text-muted mb-2 legal-index__lead">
       Площадка «Аренда инвентаря» выступает агентом между арендодателем и
@@ -24,11 +23,14 @@ useSeoMeta({
         v-for="doc in LEGAL_DOCS"
         :key="doc.slug"
         :to="`/legal/${doc.slug}`"
-        class="legal-card gv-card-elevated pa-5"
+        class="legal-card"
       >
-        <v-icon class="mb-3" color="secondary">mdi-file-document-outline</v-icon>
+        <v-icon class="legal-card__icon" aria-hidden="true">mdi-file-document-outline</v-icon>
+        <div>
         <p class="legal-card__title mb-1">{{ doc.title }}</p>
         <p class="legal-card__summary mb-0">{{ doc.summary }}</p>
+        </div>
+        <v-icon size="20" aria-hidden="true">mdi-chevron-right</v-icon>
       </NuxtLink>
     </div>
   </div>
@@ -49,32 +51,13 @@ useSeoMeta({
   color: var(--gv-text-muted);
 }
 
-.legal-index__grid {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-}
-
-.legal-card {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.legal-card:hover {
-  border-color: var(--gv-sign);
-}
-
-.legal-card__title {
-  font-weight: 700;
-  font-size: 15px;
-  color: var(--gv-text);
-}
-
-.legal-card__summary {
-  font-size: 13px;
-  color: var(--gv-text-secondary);
-  line-height: 1.5;
-}
+.legal-index { max-width: 860px; margin: 0 auto; }
+.legal-index__grid { overflow: hidden; background: white; border: 1px solid var(--gv-border-light); border-radius: 14px; }
+.legal-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 18px clamp(12px, 3vw, 24px); color: inherit; text-decoration: none; }
+.legal-card + .legal-card { border-top: 1px solid var(--gv-border-light); }
+.legal-card:hover, .legal-card:focus-visible { background: #f3fafb; }
+.legal-card:focus-visible { outline-offset: -3px; }
+.legal-card__icon { color: #18738a; }
+.legal-card__title { font-size: 16px; font-weight: 700; }
+.legal-card__summary { font-size: 14px; line-height: 1.5; color: var(--gv-text-secondary); }
 </style>

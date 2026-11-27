@@ -23,21 +23,20 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <section class="page-container py-8 handoff-page">
-    <h1 class="section-title">Продолжить бронирование</h1>
+  <AccountPanel title="Продолжить бронирование">
     <p v-if="loading" role="status">Переходим к вашему аккаунту…</p>
     <p v-if="error" role="alert" class="text-error">{{ error }}</p>
     <template v-if="listingId && !loading">
       <p>Выберите аккаунт для входа. После входа откроется выбранный объект с вашими датами и количеством.</p>
       <v-btn class="gv-cta handoff-button" color="primary" block size="large" @click="proceed">Войти через «Города и Веси»</v-btn>
-      <v-btn class="gv-cta handoff-button mt-3" variant="outlined" block size="large" :to="{ path: '/auth', query: { returnTo: returnPath } }">Войти в аккаунт Аренды</v-btn>
+      <v-btn class="gv-cta handoff-button" variant="outlined" block size="large" :to="{ path: '/auth', query: { returnTo: returnPath } }">Войти в аккаунт Аренды</v-btn>
     </template>
     <NuxtLink class="handoff-back" :to="listingId ? returnPath : '/rental-items'">{{ listingId ? 'Вернуться к объекту' : 'К объектам аренды' }}</NuxtLink>
-  </section>
+  </AccountPanel>
 </template>
 <style scoped>
-.handoff-page { max-width: 560px; }
+
 .handoff-button { white-space: normal; height: auto !important; min-height: 48px; padding: 8px 12px; }
 .handoff-button :deep(.v-btn__content) { white-space: normal; }
-.handoff-back { display: block; margin-top: 20px; }
+.handoff-back { display: block; margin-top: 4px; }
 </style>

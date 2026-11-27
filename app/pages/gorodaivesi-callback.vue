@@ -33,4 +33,12 @@ onMounted(async () => {
   }
 });
 </script>
-<template><section class="page-container py-8"><h1>Вход в Аренду</h1><p>{{ error || "Завершаем вход…" }}</p><NuxtLink v-if="error" :to="restart">Повторить вход через «Города и Веси»</NuxtLink><br><NuxtLink v-if="error" :to="`/auth?returnTo=${encodeURIComponent(back)}`">Войти в существующий аккаунт Аренды</NuxtLink><br><NuxtLink :to="back">Вернуться к объекту</NuxtLink></section></template>
+<template>
+  <AccountPanel title="Вход в Аренду">
+    <p v-if="error" role="alert">{{ error }}</p>
+    <p v-else role="status">Завершаем вход…</p>
+    <v-btn v-if="error" color="primary" size="large" :to="restart">Повторить вход через «Города и Веси»</v-btn>
+    <NuxtLink v-if="error" :to="`/auth?returnTo=${encodeURIComponent(back)}`">Войти в существующий аккаунт Аренды</NuxtLink>
+    <NuxtLink :to="back">Вернуться к объекту</NuxtLink>
+  </AccountPanel>
+</template>

@@ -91,14 +91,8 @@ async function gorodaivesiSubmit() {
 </script>
 
 <template>
-  <section class="auth-page page-container py-8">
-    <span class="gv-sign-eyebrow mb-3">Аккаунт</span>
-    <h1 class="section-title mb-2">{{ mode === "login" ? "Вход" : "Регистрация" }}</h1>
-    <p class="text-muted mb-4 auth-page__lead">
-      Войдите в аккаунт «Аренда инвентаря» или используйте вход через «Города и Веси».
-    </p>
-    <v-card class="pa-4 pa-sm-6 gv-card-elevated auth-page__card" flat>
-      <v-btn-toggle v-model="mode" mandatory class="mb-4">
+  <AccountPanel :title="mode === 'login' ? 'Вход в Аренду' : 'Регистрация'">
+      <v-btn-toggle v-model="mode" mandatory class="auth-page__tabs">
         <v-btn value="login" class="action-btn">Вход</v-btn>
         <v-btn value="registration" class="action-btn">Регистрация</v-btn>
       </v-btn-toggle>
@@ -152,7 +146,7 @@ async function gorodaivesiSubmit() {
       </form>
 
       <template v-if="!returnPath.startsWith('/federation/authorize')">
-      <div class="auth-page__divider my-5">
+      <div class="auth-page__divider">
         <span>или</span>
       </div>
 
@@ -169,23 +163,18 @@ async function gorodaivesiSubmit() {
         <img src="/gorodaivesi-logo.webp" alt="" width="48" height="36" class="auth-page__brand" />
         <span>Войти через «Города и Веси»</span>
       </v-btn>
-      <p class="auth-page__hint mt-2">
+      <p class="auth-page__hint">
         Вы перейдёте на gorodaivesi.ru для входа и вернётесь сюда.
       </p>
       </template>
-    </v-card>
-  </section>
+  </AccountPanel>
 </template>
 
 <style scoped>
-.auth-page__card {
-  max-width: 460px;
-}
-
-.auth-page__lead {
-  max-width: 460px;
-  font-size: 14px;
-}
+.auth-page__tabs { display: grid; grid-template-columns: 1fr 1fr; width: 100%; margin: 0 0 6px; padding: 3px; border-radius: 8px; background: #f3f1ed; }
+.auth-page__tabs :deep(.v-btn) { height: 100%; font-size: 14px; background: transparent; }
+.auth-page__tabs :deep(.v-btn--active) { background: white; box-shadow: 0 1px 4px #251e181c; }
+.auth-page__tabs :deep(.v-btn--active .v-btn__overlay) { opacity: 0; }
 
 .auth-page__divider {
   display: flex;

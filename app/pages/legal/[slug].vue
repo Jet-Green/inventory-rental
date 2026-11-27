@@ -163,19 +163,23 @@ useSeoMeta({
 </template>
 
 <style scoped>
+.legal-doc { max-width: 820px; margin-inline: auto; }
+
 .legal-doc__back {
   font-size: 13px;
 }
 
 .legal-doc__body {
-  max-width: 820px;
-  line-height: 1.65;
+  border-radius: 14px;
+  background: white;
+  line-height: 1.72;
   color: var(--gv-text);
 }
 
 .legal-doc__body :deep(h1) {
   font-family: var(--gv-font-display);
-  font-size: 1.6rem;
+  font-size: clamp(1.3rem, 3vw, 2rem);
+  overflow-wrap: anywhere;
   font-weight: 800;
   letter-spacing: -0.015em;
   margin: 0 0 16px;
@@ -198,14 +202,14 @@ useSeoMeta({
 
 .legal-doc__body :deep(p) {
   margin: 0 0 12px;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .legal-doc__body :deep(ul),
 .legal-doc__body :deep(ol) {
   margin: 0 0 14px;
   padding-left: 22px;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .legal-doc__body :deep(li) {
