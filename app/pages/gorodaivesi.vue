@@ -4,6 +4,7 @@ definePageMeta({ path: "/auth/gorodaivesi" });
 const route = useRoute();
 const error = ref("");
 const loading = ref(false);
+const ready = ref(false);
 const listingId = typeof route.query.listingId === "string" && /^[a-f0-9]{24}$/.test(route.query.listingId) ? route.query.listingId : "";
 const returnPath = rentalReturnPath(`/rental-item/${listingId}?${new URLSearchParams(rentalHandoffQuery(route.query))}`);
 async function proceed() {
@@ -17,6 +18,7 @@ async function proceed() {
   } catch { error.value = "Не удалось начать вход. Попробуйте ещё раз."; loading.value = false; }
 }
 onMounted(async () => {
+  ready.value = true;
   if (!listingId) { error.value = "Объект не найден. Вернитесь в каталог."; return; }
   // The hint only selects the UI; the provider verifies its own session.
   if (route.query.continue === 'gorodaivesi') await proceed();
@@ -28,7 +30,7 @@ onMounted(async () => {
     <p v-if="error" role="alert" class="text-error">{{ error }}</p>
     <template v-if="listingId && !loading">
       <p>Выберите аккаунт для входа. После входа откроется выбранный объект с вашими датами и количеством.</p>
-      <v-btn class="gv-cta handoff-button" color="primary" block size="large" @click="proceed">Войти через «Города и Веси»</v-btn>
+      <v-btn class="gv-cta handoff-button" color="primary" block size="large" :disabled="!ready" @click="proceed">Войти через «Города и Веси»</v-btn>
       <v-btn class="gv-cta handoff-button" variant="outlined" block size="large" :to="{ path: '/auth', query: { returnTo: returnPath } }">Войти в аккаунт Аренды</v-btn>
     </template>
     <NuxtLink class="handoff-back" :to="listingId ? returnPath : '/rental-items'">{{ listingId ? 'Вернуться к объекту' : 'К объектам аренды' }}</NuxtLink>

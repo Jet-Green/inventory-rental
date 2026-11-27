@@ -10,6 +10,8 @@ const route = useRoute();
 const router = useRouter();
 const returnPath = computed(() => rentalReturnPath(route.query.returnTo));
 const auth = useAuth();
+const ready = ref(false);
+onMounted(() => { ready.value = true; });
 
 watch(
   () => route.query.businessNeedAuth,
@@ -140,6 +142,7 @@ async function gorodaivesiSubmit() {
           block
           size="large"
           :loading="isLoading"
+          :disabled="!ready"
         >
           {{ mode === "login" ? "Войти" : "Создать аккаунт" }}
         </v-btn>
@@ -157,7 +160,7 @@ async function gorodaivesiSubmit() {
         block
         size="large"
         :loading="isGorodaivesiLoading"
-        :disabled="isGorodaivesiLoading || isLoading"
+        :disabled="!ready || isGorodaivesiLoading || isLoading"
         @click="gorodaivesiSubmit"
       >
         <img src="/gorodaivesi-logo.webp" alt="" width="48" height="36" class="auth-page__brand" />
