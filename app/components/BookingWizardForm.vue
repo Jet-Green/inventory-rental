@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { rentalHandoffQuery } from "~/utils/rentalHandoff";
 import dayjs from "dayjs";
 import BookingApi from "~/api/BookingApi";
 import { useBooking } from "~/composables/useBooking";
@@ -266,6 +267,13 @@ onMounted(async () => {
     }
     period.units = d.units;
   }
+  const initial = rentalHandoffQuery(route.query);
+  if (initial.dateFrom && initial.dateTo) {
+    period.startDate = initial.dateFrom;
+    await nextTick();
+    period.rentalDays = dayjs(initial.dateTo).diff(dayjs(initial.dateFrom), "day");
+  }
+  if (initial.unitsNeeded) period.units = Number(initial.unitsNeeded);
 });
 
 watch(
