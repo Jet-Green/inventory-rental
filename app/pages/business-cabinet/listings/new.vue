@@ -5,5 +5,5 @@ definePageMeta({
 </script>
 
 <template>
-  <BusinessListingNewForm />
+  <BusinessListingCreateForm />
 </template>

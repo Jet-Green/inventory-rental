@@ -70,12 +70,12 @@ function bookingStatusColor(status: IBookedRange["status"]): string {
 
 <template>
   <v-card flat class="pa-4">
-    <h3 class="mb-3">График доступности</h3>
+    <h3 class="mb-3">Расписание доступности оборудования</h3>
     <v-table v-if="ranges?.length" density="compact">
       <thead>
         <tr>
-          <th>Когда доступно</th>
-          <th>Статус</th>
+          <th>Дни и время аренды</th>
+          <th>Доступность периода</th>
         </tr>
       </thead>
       <tbody>
@@ -90,11 +90,11 @@ function bookingStatusColor(status: IBookedRange["status"]): string {
       </tbody>
     </v-table>
     <p v-else class="text-caption text-medium-emphasis mb-0">
-      Расписание не задано
+      Расписание доступности не задано
     </p>
 
     <div v-if="busyDataEnabled" class="mt-4">
-      <p class="text-body-2 font-weight-medium mb-2">Занятость на ближайшие 14 дней</p>
+      <p class="text-body-2 font-weight-medium mb-2">Брони на ближайшие 14 дней</p>
       <div class="d-flex flex-wrap ga-2 mb-2">
         <div
           v-for="day in next14Days"
@@ -118,15 +118,15 @@ function bookingStatusColor(status: IBookedRange["status"]): string {
 
     <div v-if="busyDataEnabled" class="mt-4">
       <div class="d-flex align-center justify-space-between mb-2">
-        <p class="text-body-2 font-weight-medium mb-0">Фактические занятые периоды</p>
+        <p class="text-body-2 font-weight-medium mb-0">Периоды активных броней</p>
         <v-progress-circular v-if="busyLoading" indeterminate size="18" width="2" color="primary" />
       </div>
       <v-table v-if="busyRangesSorted.length" density="compact">
         <thead>
           <tr>
-            <th>Период</th>
-            <th>Статус</th>
-            <th>Ед.</th>
+            <th>Начало и окончание аренды</th>
+            <th>Статус брони</th>
+            <th>Количество</th>
           </tr>
         </thead>
         <tbody>

@@ -42,12 +42,12 @@ const availabilitySchedule = ref<IWeekdayAvailability[]>(
 );
 
 const steps = [
-  { n: 1, label: "Инфо" },
+  { n: 1, label: "Описание" },
   { n: 2, label: "Фото" },
-  { n: 3, label: "Цена" },
+  { n: 3, label: "Цена и количество" },
   { n: 4, label: "Получение" },
   { n: 5, label: "Доступность" },
-  { n: 6, label: "Просмотр" },
+  { n: 6, label: "Проверка" },
 ];
 
 async function load(): Promise<void> {
@@ -320,7 +320,7 @@ const availabilityPreview = computed(() =>
         </div>
 
         <div v-show="step === 5" class="max-w-screen-lg">
-          <ListingAvailabilityPicker v-model="availabilitySchedule" />
+          <ListingWeeklyScheduleEditor v-model="availabilitySchedule" />
         </div>
 
         <div v-show="step === 6" class="max-w-screen-md">
@@ -386,41 +386,7 @@ const availabilityPreview = computed(() =>
           {{ errorMessage }}
         </p>
       </section>
-      <aside class="business-panel listing-editor__summary">
-        <h2 class="text-h6 mb-4">Ваше объявление</h2>
-        <img
-          v-if="form.photos[0]"
-          :src="form.photos[0]"
-          alt="Обложка объявления"
-          class="listing-editor__cover mb-4"
-        />
-        <p class="font-weight-semibold mb-2">
-          {{ form.title || "Название оборудования" }}
-        </p>
-        <p class="business-muted mb-4">
-          {{ form.description || "Описание появится здесь" }}
-        </p>
-        <dl class="listing-editor__facts">
-          <div>
-            <dt>Цена за день</dt>
-            <dd>
-              {{ new Intl.NumberFormat("ru-RU").format(form.pricePerDay) }} ₽
-            </dd>
-          </div>
-          <div>
-            <dt>Минимальный срок</dt>
-            <dd>{{ form.minDays }} дн.</dd>
-          </div>
-          <div>
-            <dt>Количество</dt>
-            <dd>{{ form.unitsTotal }} шт.</dd>
-          </div>
-          <div>
-            <dt>Фотографии</dt>
-            <dd>{{ form.photos.length }} / 5</dd>
-          </div>
-        </dl>
-      </aside>
+      <BusinessListingPreview :listing="form" />
     </div>
   </div>
 </template>
@@ -443,27 +409,6 @@ const availabilityPreview = computed(() =>
 }
 .listing-editor__form {
   min-width: 0;
-}
-.listing-editor__cover {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  border-radius: var(--gv-radius-thumb);
-}
-.listing-editor__facts > div {
-  display: flex;
-  gap: 12px;
-  justify-content: space-between;
-  padding-block: 12px;
-  border-top: 1px solid var(--gv-border-light);
-  font-size: 13px;
-}
-.listing-editor__facts dt {
-  color: var(--gv-text-secondary);
-}
-.listing-editor__facts dd {
-  text-align: right;
-  font-weight: 600;
 }
 .listing-editor__actions {
   padding-top: 20px;
