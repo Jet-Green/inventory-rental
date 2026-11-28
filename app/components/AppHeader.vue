@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { rentalReturnPath } from "~/utils/rentalHandoff";
 const auth = useAuth();
 const { user } = storeToRefs(auth);
 const route = useRoute();
@@ -18,20 +19,17 @@ const variant = computed<HeaderVariant>(() => {
 });
 
 const isOpen = ref(false);
-const { open: openCabinetSelectDialog } = useCabinetSelectDialog();
+const listingPath = "/business-cabinet/listings/new";
+const placeListingTarget = computed(() =>
+  user.value ? listingPath : { path: "/auth", query: { returnTo: listingPath } },
+);
+const loginTarget = computed(() => {
+  const returnTo = rentalReturnPath(route.fullPath);
+  return returnTo === "/cabinet" ? "/auth" : { path: "/auth", query: { returnTo } };
+});
 
 function closeDrawer(): void {
   isOpen.value = false;
-}
-
-function go(to: string): void {
-  closeDrawer();
-  navigateTo(to);
-}
-
-function openPlaceListing(): void {
-  closeDrawer();
-  void openCabinetSelectDialog();
 }
 </script>
 
@@ -62,7 +60,8 @@ function openPlaceListing(): void {
             color="primary"
             class="gv-cta"
             rounded="lg"
-            @click="openPlaceListing"
+            :to="placeListingTarget"
+            @click="closeDrawer"
           >
             Разместить объявление
           </v-btn>
@@ -72,7 +71,8 @@ function openPlaceListing(): void {
             color="primary"
             class="gv-cta"
             rounded="lg"
-            @click="openPlaceListing"
+            :to="placeListingTarget"
+            @click="closeDrawer"
           >
             Разместить объявление
           </v-btn>
@@ -92,7 +92,7 @@ function openPlaceListing(): void {
             </v-avatar>
           </template>
           <template v-else>
-            <v-btn to="/auth" color="primary" class="gv-cta" rounded="lg">
+            <v-btn :to="loginTarget" color="primary" class="gv-cta" rounded="lg">
               Войти
             </v-btn>
           </template>
@@ -110,6 +110,9 @@ function openPlaceListing(): void {
         v-if="variant !== 'minimal'"
         class="d-md-none"
         icon
+        aria-label="Открыть меню"
+        :aria-expanded="isOpen"
+        aria-controls="public-navigation"
         variant="text"
         @click="isOpen = true"
       >
@@ -119,19 +122,27 @@ function openPlaceListing(): void {
   </header>
 
   <ClientOnly>
-    <v-navigation-drawer v-model="isOpen" location="right" temporary width="280">
+    <v-navigation-drawer id="public-navigation" v-model="isOpen" location="right" temporary width="280">
       <div class="pa-4">
-        <div class="text-subtitle-1 font-weight-bold mb-3">Меню</div>
+        <div class="d-flex align-center justify-space-between mb-3">
+          <span class="text-subtitle-1 font-weight-bold">Меню</span>
+          <v-btn icon="mdi-close" variant="text" aria-label="Закрыть меню" @click="closeDrawer" />
+        </div>
         <v-list density="comfortable">
-          <v-list-item title="Каталог" @click="go('/listings')" />
-          <v-list-item title="Разместить объявление" @click="openPlaceListing" />
+          <v-list-item title="Каталог" to="/rental-items" @click="closeDrawer" />
+          <v-list-item
+            title="Разместить объявление"
+            :to="placeListingTarget"
+            @click="closeDrawer"
+          />
           <v-divider class="my-2" />
           <v-list-item
             v-if="user"
             title="Кабинет"
-            @click="go(user.roles?.includes('admin') ? '/admin' : '/cabinet')"
+            :to="user.roles?.includes('admin') ? '/admin' : '/cabinet'"
+            @click="closeDrawer"
           />
-          <v-list-item v-else title="Войти" @click="go('/auth')" />
+          <v-list-item v-else title="Войти" :to="loginTarget" @click="closeDrawer" />
         </v-list>
       </div>
     </v-navigation-drawer>
@@ -171,7 +182,7 @@ function openPlaceListing(): void {
   flex-direction: row;
   align-items: baseline;
   gap: 8px;
-  flex: 0 1 auto;
+  flex: 1;
 }
 
 .gv-header__logo {
@@ -221,5 +232,8 @@ function openPlaceListing(): void {
 .gv-header__actions--placeholder {
   min-height: 48px;
   min-width: 120px;
+}
+@media (max-width: 599px) {
+  .gv-header__catalog-note { display: none; }
 }
 </style>

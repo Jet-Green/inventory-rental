@@ -36,7 +36,7 @@ function isActive(path: string): boolean {
           </a>
         </div>
         <div class="d-flex align-center ga-2 flex-wrap">
-          <v-btn variant="outlined" color="primary" class="gv-cta" @click="void openCabinetSelect()">
+          <v-btn variant="outlined" color="primary" class="gv-cta" to="/business-cabinet/listings/new">
             Разместить объявление
           </v-btn>
 
@@ -109,7 +109,7 @@ function isActive(path: string): boolean {
 @media (max-width: 480px) {
  .admin-header-label, .cabinet-header-label { display: none; }
  .cabinet-header__row > :last-child { width: 100%; }
- .cabinet-header__row > :last-child > :first-child { flex: 1; }
+ .cabinet-header__row > :last-child > :first-child { flex: 1 0 auto; }
  :deep(.private-page) { padding: 24px 16px !important; }
  :deep(.private-page h1) { overflow-wrap: anywhere; }
  :deep(.private-page .v-card-actions) { flex-wrap: wrap; }

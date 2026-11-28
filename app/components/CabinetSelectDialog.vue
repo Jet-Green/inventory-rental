@@ -22,9 +22,9 @@ function goBusinessCabinet(): void {
 </script>
 
 <template>
-  <v-dialog v-model="isOpen" max-width="560" scrollable>
+  <v-dialog v-model="isOpen" max-width="560" scrollable aria-labelledby="cabinet-select-title">
     <v-card class="pa-2 gv-modal">
-      <v-card-title class="gv-display text-h6 pb-2">
+      <v-card-title id="cabinet-select-title" class="gv-display text-h6 pb-2">
         Выберите кабинет
       </v-card-title>
       <v-card-text class="cabinet-options">
