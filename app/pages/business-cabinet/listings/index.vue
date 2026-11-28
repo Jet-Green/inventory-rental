@@ -83,6 +83,11 @@ const filteredListings = computed(() => {
   );
 });
 
+function clearListingFilters() {
+  search.value = "";
+  statusFilter.value = "all";
+}
+
 function priceLabel(price: number): string {
   return `${new Intl.NumberFormat("ru-RU").format(price)} ₽ / день`;
 }
@@ -323,8 +328,8 @@ async function onToggleVisibility(item: IRentalListing): Promise<void> {
           ? 'Измените поиск или статус.'
           : 'Добавьте первое объявление, чтобы начать сдавать оборудование в аренду.'
       "
-      action-title="Добавить объявление"
-      @action="navigateTo('/business-cabinet/listings/new')"
+      :action-title="listings.length ? 'Сбросить поиск и фильтр' : 'Добавить объявление'"
+      @action="listings.length ? clearListingFilters() : navigateTo('/business-cabinet/listings/new')"
     />
 
     <v-dialog v-model="editDialogOpen" max-width="560">

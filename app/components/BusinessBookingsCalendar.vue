@@ -293,8 +293,10 @@ function renterLine(b: IBookingItem): string {
     <EmptyState
       v-if="!isLoading && !loadError && !activeBookings.length"
       class="mt-5"
-      title="Броней пока нет"
-      description="Когда появятся брони по вашим объявлениям, они отобразятся в календаре."
+      :title="listingFilter ? 'По этому объявлению нет броней' : 'Броней пока нет'"
+      :description="listingFilter ? '' : 'Здесь появятся брони по вашим объявлениям.'"
+      :action-title="listingFilter ? 'Показать все объявления' : ''"
+      @action="listingFilter = ''"
     />
   </div>
 </template>

@@ -8,11 +8,11 @@ const props = defineProps<{
 }>();
 
 const route = useRoute();
-const { filters, categories } = useRentalCatalog();
+const { appliedFilters, categories } = useRentalCatalog();
 
 const cover = computed(() => props.item.photos?.[0] || "");
 
-const to = computed(() => ({ path: `${props.toBase || "/rental-item"}/${props.item._id}`, query: rentalHandoffQuery({ ...route.query, ...filters.value, unitsNeeded: String(filters.value.unitsNeeded || route.query.unitsNeeded || "") }) }));
+const to = computed(() => ({ path: `${props.toBase || "/rental-item"}/${props.item._id}`, query: rentalHandoffQuery({ ...route.query, ...appliedFilters.value, unitsNeeded: String(appliedFilters.value.unitsNeeded || route.query.unitsNeeded || "") }) }));
 
 const categoriesLine = computed(
   () => props.item.categories?.map((c) => typeof c === "string" ? categories.value.find(category => category.key === c)?.name || c : c.name).filter(Boolean).join(" · ") || "Каталог",
@@ -33,7 +33,7 @@ const priceLabel = computed(() => {
       :style="cover ? { backgroundImage: `url(${cover})` } : undefined"
       role="img"
       :aria-label="cover ? item.title : `${item.title}: фото отсутствует`"
-    ><span v-if="!cover" class="listing-card__placeholder"><v-icon icon="mdi-image-outline" size="36" />Фото скоро появится</span></div>
+    ><span v-if="!cover" class="listing-card__placeholder"><v-icon icon="mdi-image-outline" size="36" />Нет фотографии</span></div>
     <div class="listing-card__body">
       <h3 class="listing-card__title">{{ item.title }}</h3>
       <p class="listing-card__meta">{{ categoriesLine }}</p>

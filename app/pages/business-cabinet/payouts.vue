@@ -38,16 +38,12 @@ function sumByStatuses(statuses: BookingStatus[]): number {
     .reduce((acc, b) => acc + net(b), 0);
 }
 
-/** Завершённые аренды — деньги, доступные к выводу. */
-const available = computed(() => sumByStatuses(["completed"]));
-/** Оплачено арендатором, аренда идёт или впереди — в обработке. */
-const inProgress = computed(() => sumByStatuses(["confirmed", "active"]));
-/** Всё подтверждённое (оплаченное) за всё время. */
-const earnedTotal = computed(() =>
+const completedNet = computed(() => sumByStatuses(["completed"]));
+const currentNet = computed(() => sumByStatuses(["confirmed", "active"]));
+const totalNet = computed(() =>
   sumByStatuses(["confirmed", "active", "completed"]),
 );
 
-/** Брони, относящиеся к выплатам (оплаченные/завершённые), новые сверху. */
 const search = ref("");
 const payoutRows = computed(() =>
   bookings.value
@@ -74,9 +70,7 @@ function renterLine(b: IBookingItem): string {
   <div class="business-page px-4 px-sm-6 py-8">
     <h1 class="gv-display text-h4 mb-2">Выплаты</h1>
     <p class="text-body-2 text-medium-emphasis mb-6">
-      Расчёты проходят через платформу-агента. Реальный вывод средств
-      подключается вместе с эквайрингом — ниже предварительный расчёт по вашим
-      броням.
+      Предварительный расчёт по броням за вычетом комиссии платформы.
     </p>
 
     <v-alert
@@ -97,43 +91,42 @@ function renterLine(b: IBookingItem): string {
       class="mb-4"
     />
 
-    <v-row class="mb-2 payout-summary">
+    <v-row v-if="!isLoading && !loadError" class="mb-2 payout-summary">
       <v-col cols="12" md="4">
         <DashboardMetricCard
-          label="Доступно к выплате"
-          :value="money(available)"
-          delta="по завершённым арендам"
+          label="По завершённым арендам"
+          :value="money(completedNet)"
           icon="mdi-cash-check"
         />
       </v-col>
       <v-col cols="12" md="4">
         <DashboardMetricCard
-          label="В обработке"
-          :value="money(inProgress)"
-          delta="оплачено, аренда идёт или впереди"
+          label="По текущим броням"
+          :value="money(currentNet)"
+          delta="подтверждённые и активные брони"
           icon="mdi-cash-clock"
         />
       </v-col>
       <v-col cols="12" md="4">
         <DashboardMetricCard
-          label="Всего заработано"
-          :value="money(earnedTotal)"
+          label="Итого за вычетом комиссии"
+          :value="money(totalNet)"
           delta="за всё время"
           icon="mdi-chart-line"
         />
       </v-col>
     </v-row>
 
-    <div class="business-section-heading mt-6"><h2>История начислений</h2></div>
+    <div class="business-section-heading mt-6"><h2>Расчёт по броням</h2></div>
     <div class="business-toolbar">
       <v-text-field
         v-model="search"
-        label="Найти начисление"
+        label="Объявление или арендатор"
         prepend-inner-icon="mdi-magnify"
         hide-details
         clearable
         @click:clear="search = ''"
-      /><span class="business-muted">{{ payoutRows.length }} начислений</span>
+      /><span v-if="!isLoading && !loadError" class="business-muted">Найдено броней: {{ payoutRows.length }}</span>
     </div>
 
     <div v-if="payoutRows.length" class="d-flex flex-column ga-3">
@@ -170,8 +163,10 @@ function renterLine(b: IBookingItem): string {
 
     <EmptyState
       v-else-if="!isLoading && !loadError"
-      :title="search ? 'Начисления не найдены' : 'Начислений пока нет'"
-      description="Здесь появятся выплаты по оплаченным и завершённым броням."
+      :title="search ? 'Брони не найдены' : 'Пока нет броней для расчёта'"
+      :description="search ? 'Попробуйте другое название или имя арендатора.' : 'Здесь появятся подтверждённые, активные и завершённые брони.'"
+      :action-title="search ? 'Очистить поиск' : ''"
+      @action="search = ''"
     />
   </div>
 </template>

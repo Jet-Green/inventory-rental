@@ -25,7 +25,7 @@ function listingIdOf(listingId: unknown): string {
 
 <template>
   <div class="private-page px-4 px-sm-6 py-8">
-    <div class="rental-heading mb-6"><h1 class="gv-display text-h4">Мои аренды</h1><v-btn to="/listings" variant="outlined" color="primary" class="gv-cta" prepend-icon="mdi-plus">Найти инвентарь</v-btn></div>
+    <div class="rental-heading mb-6"><h1 class="gv-display text-h4">Мои аренды</h1><v-btn to="/rental-items" variant="outlined" color="primary" class="gv-cta" prepend-icon="mdi-plus">Найти инвентарь</v-btn></div>
     <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
     <v-alert v-if="loadError" type="error" variant="tonal" class="mb-4">
       Не удалось загрузить данные.
@@ -73,8 +73,8 @@ function listingIdOf(listingId: unknown): string {
       v-else-if="!isLoading && !loadError"
       title="Бронирований пока нет"
       description="Найдите оборудование в каталоге и оформите первую аренду."
-      action-title="В каталог"
-      @action="navigateTo('/')"
+      action-title="В каталог аренды"
+      @action="navigateTo('/rental-items')"
     />
 
   </div>

@@ -18,7 +18,7 @@ const emit = defineEmits<{
 
 <template>
   <div class="gv-empty pa-8 text-center">
-    <div class="text-h6 font-weight-bold mb-2">{{ title }}</div>
+    <h2 class="text-h6 font-weight-bold mb-2">{{ title }}</h2>
     <div v-if="description" class="gv-empty__desc mb-5">{{ description }}</div>
     <v-btn
       v-if="actionTitle"

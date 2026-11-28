@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ICatalogFilters } from "~/types/rental";
 import { useRentalCatalog } from "~/composables/useRentalCatalog";
 
 const {
@@ -6,23 +7,15 @@ const {
   items,
   filters,
   isLoading,
-  pagination,
   fetchCategories,
+  categoriesFailed,
   fetchCatalog,
-  loadMore,
 } = useRentalCatalog();
 
 const searchLocal = ref("");
-const hasFetchedOnce = ref(false);
+const draftFilters = ref<ICatalogFilters>({});
 
-onMounted(async () => {
-  await fetchCategories();
-  try {
-    await fetchCatalog({}, 1);
-  } finally {
-    hasFetchedOnce.value = true;
-  }
-});
+onMounted(() => Promise.all([fetchCategories(), fetchCatalog({}, 1)]));
 
 watch(
   () => filters.value.search,
@@ -50,7 +43,7 @@ const quickTags = computed(() => {
   return out.slice(0, 4);
 });
 
-const activeQuickKey = ref<string | null>(null);
+const activeQuickKey = computed(() => filters.value.categories?.length === 1 ? filters.value.categories[0] : null);
 const filtersDialogOpen = ref(false);
 
 const activeFiltersCount = computed(() => {
@@ -64,11 +57,10 @@ const activeFiltersCount = computed(() => {
   return n;
 });
 
-const showLoading = computed(() => isLoading.value);
-const showList = computed(() => !isLoading.value && items.value.length > 0);
-const showEmpty = computed(
-  () => !isLoading.value && hasFetchedOnce.value && items.value.length === 0,
-);
+function openFilters() {
+  draftFilters.value = { ...filters.value };
+  filtersDialogOpen.value = true;
+}
 
 async function applySearch(): Promise<void> {
   await fetchCatalog({ ...filters.value, search: searchLocal.value || undefined }, 1);
@@ -76,27 +68,23 @@ async function applySearch(): Promise<void> {
 
 async function applyFiltersFromDialog(): Promise<void> {
   filtersDialogOpen.value = false;
-  await applySearch();
+  await fetchCatalog({ ...draftFilters.value, search: searchLocal.value || undefined });
 }
 
-async function clearFiltersInDialog(): Promise<void> {
-  const search = filters.value.search;
-  filters.value = search ? { search } : {};
-  activeQuickKey.value = null;
+function clearFiltersInDialog() {
+  draftFilters.value = {};
 }
 
 async function toggleQuickCategory(key: string): Promise<void> {
   if (activeQuickKey.value === key) {
-    activeQuickKey.value = null;
     await fetchCatalog({ ...filters.value, categories: undefined }, 1);
     return;
   }
-  activeQuickKey.value = key;
+
   await fetchCatalog({ ...filters.value, categories: [key] }, 1);
 }
 
 async function resetCatalog(): Promise<void> {
-  activeQuickKey.value = null;
   filters.value = {};
   searchLocal.value = "";
   await fetchCatalog({}, 1);
@@ -159,7 +147,7 @@ useSeoMeta({
               class="gv-cta"
               height="48"
               min-width="120"
-              @click="filtersDialogOpen = true"
+              @click="openFilters"
             >
               Фильтры
             </v-btn>
@@ -174,8 +162,10 @@ useSeoMeta({
           </v-card-title>
           <v-card-text class="pa-4 pt-2">
             <RentalCatalogFilters
-              v-model="filters"
+              v-model="draftFilters"
               :categories="categories"
+              :categories-failed="categoriesFailed"
+              @retry-categories="fetchCategories"
               :loading="isLoading"
               :show-apply-button="false"
             />
@@ -208,44 +198,14 @@ useSeoMeta({
           type="button"
           class="gv-chip-tag"
           :class="{ 'gv-chip-tag--active': activeQuickKey === tag.key }"
+          :aria-pressed="activeQuickKey === tag.key"
           @click="toggleQuickCategory(tag.key)"
         >
           {{ tag.label }}
         </button>
       </div>
 
-      <div class="home-catalog__results"><span aria-live="polite">{{ pagination.total }} объявлений</span></div>
-      <v-progress-linear v-if="showLoading" indeterminate color="primary" class="mb-4" />
-
-      <div v-if="showLoading && !items.length" class="card-grid">
-        <ListingCardSkeleton v-for="i in 6" :key="i" />
-      </div>
-
-      <div v-else-if="showList" class="card-grid">
-        <RentalListingCard v-for="item in items" :key="item._id" :item="item" to-base="/rental-item" />
-      </div>
-
-      <EmptyState
-        v-else-if="showEmpty"
-        title="Ничего не найдено"
-        description="Попробуйте изменить фильтры или поиск."
-        action-title="Сбросить"
-        @action="resetCatalog"
-      />
-
-      <div class="d-flex justify-center mt-8">
-        <v-btn
-          v-if="pagination.page < pagination.totalPages"
-          variant="outlined"
-          color="primary"
-          class="gv-cta"
-          rounded="lg"
-          :loading="isLoading"
-          @click="loadMore"
-        >
-          Показать ещё
-        </v-btn>
-      </div>
+      <RentalCatalogResults @reset="resetCatalog" />
     </section>
   </div>
 </template>
@@ -288,9 +248,6 @@ useSeoMeta({
 .home-catalog__photos img:nth-child(2) { margin-top: 34px; border-radius: 16px 16px 100px 100px; }
 .home-catalog__browse { display: inline-flex; align-items: center; gap: 12px; color: var(--gv-primary); font-weight: 700; text-decoration: none; }
 .home-catalog__search-panel { background: white; padding: 18px; border: 1px solid var(--gv-border-light); border-radius: var(--gv-radius-card); }
-.home-catalog__results { display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:12px; margin-bottom:24px; }
-.home-catalog__results span { color:var(--gv-text-secondary); font-size:14px; }
 @media(max-width:959px) { .home-catalog__intro { gap:24px; } .home-catalog__photos img { height:190px; } }
 @media(max-width:599px) { .home-catalog__intro { grid-template-columns:1fr; gap:22px; } .home-catalog__photos img { height:140px; border-radius:12px; } .home-catalog__photos img:nth-child(2) { margin-top:0; border-radius:12px; } .home-catalog__search-panel { padding:12px; } }
-.card-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
 </style>

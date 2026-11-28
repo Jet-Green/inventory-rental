@@ -5,6 +5,7 @@ import type { ICategory, ICatalogFilters } from "~/types/rental";
 const props = withDefaults(
   defineProps<{
     categories: ICategory[];
+    categoriesFailed?: boolean;
     modelValue: ICatalogFilters;
     loading?: boolean;
     /** Кнопка «Применить» внутри панели (на главной — в диалоге). */
@@ -16,6 +17,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   "update:modelValue": [value: ICatalogFilters];
   apply: [];
+  retryCategories: [];
 }>();
 
 const dateFromMenu = ref(false);
@@ -89,6 +91,10 @@ const periodHint = computed(() => {
       </v-btn>
     </div>
 
+    <div v-if="categoriesFailed" class="mt-3" role="alert">
+      Не удалось загрузить категории.
+      <v-btn variant="text" @click="emit('retryCategories')">Повторить загрузку категорий</v-btn>
+    </div>
     <p v-if="periodHint" class="gv-filters__period mt-3" role="status">{{ periodHint }}</p>
 
     <div class="gv-filters__sort d-flex flex-wrap align-center ga-2 mt-3">

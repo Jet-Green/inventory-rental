@@ -91,7 +91,7 @@ function dateLabel(value: string): string {
       class="mb-4"
     />
 
-    <v-row>
+    <v-row v-if="!isLoading && !listingsLoading && !loadError">
       <v-col cols="12" md="4">
         <DashboardMetricCard
           label="Активные брони"
@@ -101,7 +101,7 @@ function dateLabel(value: string): string {
       </v-col>
       <v-col cols="12" md="4">
         <DashboardMetricCard
-          label="Выручка по сделкам"
+          label="Сумма подтверждённых, активных и завершённых броней"
           :value="revenueLabel"
           icon="mdi-cash-multiple"
         />
