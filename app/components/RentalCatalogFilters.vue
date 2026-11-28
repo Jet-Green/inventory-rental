@@ -5,6 +5,7 @@ import type { ICategory, ICatalogFilters } from "~/types/rental";
 const props = withDefaults(
   defineProps<{
     categories: ICategory[];
+    categoriesFailed?: boolean;
     modelValue: ICatalogFilters;
     loading?: boolean;
     /** Кнопка «Применить» внутри панели (на главной — в диалоге). */
@@ -16,6 +17,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   "update:modelValue": [value: ICatalogFilters];
   apply: [];
+  retryCategories: [];
 }>();
 
 const dateFromMenu = ref(false);
@@ -36,52 +38,39 @@ function toggleSort(value: NonNullable<ICatalogFilters["sortBy"]>): void {
   updateField("sortBy", value);
 }
 
-function normalizePickerDate(value: unknown): string {
-  if (!value) return "";
-  const parsed = dayjs(String(value));
-  if (!parsed.isValid()) return "";
-  return parsed.format("YYYY-MM-DD");
+function updateDateFrom(value: string | undefined): void {
+  // A new start must not leave a return date before it.
+  emit("update:modelValue", {
+    ...props.modelValue,
+    dateFrom: value,
+    dateTo: value && props.modelValue.dateTo && props.modelValue.dateTo <= value
+      ? undefined : props.modelValue.dateTo,
+  });
 }
 
-function formatDateRu(dateIso?: string): string {
-  if (!dateIso) return "";
-  const parsed = dayjs(dateIso);
-  if (!parsed.isValid()) return "";
-  return new Intl.DateTimeFormat("ru-RU", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(parsed.toDate());
-}
+const minimumReturnDate = computed(() => props.modelValue.dateFrom
+  ? dayjs(props.modelValue.dateFrom).add(1, "day").format("YYYY-MM-DD") : undefined);
+
+const periodHint = computed(() => {
+  const { dateFrom, dateTo } = props.modelValue;
+  const format = (value: string) => value.split("-").reverse().join(".");
+  if (dateFrom && dateTo) return `Выбран период: ${format(dateFrom)} — ${format(dateTo)}. Примените фильтры, чтобы обновить каталог.`;
+  if (dateFrom) return `Получение: ${format(dateFrom)}. Теперь выберите дату возврата.`;
+  if (dateTo) return `Возврат: ${format(dateTo)}. Выберите дату получения.`;
+  return "";
+});
 </script>
 
 <template>
   <div>
     <div class="gv-filters d-flex flex-wrap ga-3 align-center">
-      <v-menu v-model="dateFromMenu" :close-on-content-click="false">
-        <template #activator="{ props: menuProps }">
-          <v-text-field v-bind="menuProps" :model-value="formatDateRu(modelValue.dateFrom)" label="Дата аренды · с"
-            density="comfortable" variant="outlined" hide-details class="gv-filters__field" readonly
-            clearable prepend-inner-icon="mdi-calendar-month-outline"
-            @click:clear="updateField('dateFrom', undefined)" />
-        </template>
-        <v-card class="gv-modal">
-          <v-date-picker :model-value="modelValue.dateFrom || undefined" color="primary" show-adjacent-months
-            @update:model-value="updateField('dateFrom', normalizePickerDate($event) || undefined)" />
-        </v-card>
-      </v-menu>
-      <v-menu v-model="dateToMenu" :close-on-content-click="false">
-        <template #activator="{ props: menuProps }">
-          <v-text-field v-bind="menuProps" :model-value="formatDateRu(modelValue.dateTo)" label="по"
-            density="comfortable" variant="outlined" hide-details class="gv-filters__field" readonly
-            clearable prepend-inner-icon="mdi-calendar-month-outline" @click:clear="updateField('dateTo', undefined)" />
-        </template>
-        <v-card class="gv-modal">
-          <v-date-picker :model-value="modelValue.dateTo || undefined" :min="modelValue.dateFrom || undefined"
-            color="primary" show-adjacent-months
-            @update:model-value="updateField('dateTo', normalizePickerDate($event) || undefined)" />
-        </v-card>
-      </v-menu>
+      <RentalDateFilterField v-model:open="dateFromMenu" :model-value="modelValue.dateFrom"
+        label="Дата получения" empty-hint="Когда вы заберёте инвентарь" next-label="К дате возврата" class="gv-filters__field"
+        @update:model-value="updateDateFrom" @next="dateToMenu = true" />
+      <RentalDateFilterField v-model:open="dateToMenu" :model-value="modelValue.dateTo"
+        :min="minimumReturnDate" label="Дата возврата" empty-hint="Когда вы вернёте инвентарь"
+        :context="modelValue.dateFrom ? `Получение ${modelValue.dateFrom.split('-').reverse().join('.')}` : undefined" next-label="Готово"
+        class="gv-filters__field" @update:model-value="updateField('dateTo', $event)" />
       <v-select :model-value="modelValue.pickupType ?? null" :items="[
         { title: 'Самовывоз', value: 'pickup' },
         { title: 'Доставка', value: 'delivery' },
@@ -102,7 +91,13 @@ function formatDateRu(dateIso?: string): string {
       </v-btn>
     </div>
 
-    <div class="gv-filters__sort d-flex align-center ga-2 mt-3">
+    <div v-if="categoriesFailed" class="mt-3" role="alert">
+      Не удалось загрузить категории.
+      <v-btn variant="text" @click="emit('retryCategories')">Повторить загрузку категорий</v-btn>
+    </div>
+    <p v-if="periodHint" class="gv-filters__period mt-3" role="status">{{ periodHint }}</p>
+
+    <div class="gv-filters__sort d-flex flex-wrap align-center ga-2 mt-3">
       <v-btn size="default" class="action-btn" :variant="modelValue.sortBy === 'priceAsc' ? 'flat' : 'outlined'"
         :color="modelValue.sortBy === 'priceAsc' ? 'primary' : undefined" @click="toggleSort('priceAsc')">
         Сначала дешевле
@@ -116,7 +111,9 @@ function formatDateRu(dateIso?: string): string {
 </template>
 
 <style scoped>
+.gv-filters__period { font-size: 14px; color: var(--gv-text-secondary); }
 .gv-filters__field {
+  flex: 1 1 160px;
   width: 200px;
   max-width: 100%;
 }
@@ -129,4 +126,5 @@ function formatDateRu(dateIso?: string): string {
   flex: 1 1 280px;
   min-width: 200px;
 }
+@media(max-width:599px) { .gv-filters__field { flex-basis: 100%; width: 100%; } .gv-filters__sort .v-btn { font-size: 12px; flex: 1; } }
 </style>

@@ -22,64 +22,37 @@ function goBusinessCabinet(): void {
 </script>
 
 <template>
-  <v-dialog v-model="isOpen" max-width="560" scrollable>
+  <v-dialog v-model="isOpen" max-width="560" scrollable aria-labelledby="cabinet-select-title">
     <v-card class="pa-2 gv-modal">
-      <v-card-title class="gv-display text-h6 pb-2">
+      <v-card-title id="cabinet-select-title" class="gv-display text-h6 pb-2">
         Выберите кабинет
       </v-card-title>
-      <v-card-text class="text-body-2 text-medium-emphasis pb-4">
-        Один аккаунт: личный кабинет для аренды и отдельный кабинет бизнеса для объявлений.
-        Переключайтесь в любой момент.
+      <v-card-text class="cabinet-options">
+        <button class="cabinet-option" type="button" @click="goPersonalCabinet">
+          <v-icon icon="mdi-account-outline" aria-hidden="true" />
+          <span><strong>Личный кабинет</strong><small>Мои аренды и документы</small>
+            <small v-if="!isRenter && !isAdmin">Доступно после регистрации.</small></span>
+          <v-icon icon="mdi-chevron-right" aria-hidden="true" />
+        </button>
+        <button class="cabinet-option" type="button" @click="goBusinessCabinet">
+          <v-icon icon="mdi-store-outline" aria-hidden="true" />
+          <span><strong>Кабинет бизнеса</strong><small>Объявления, брони и выплаты</small>
+            <small v-if="!isBusiness && !isAdmin">Нужна верификация бизнеса.</small></span>
+          <v-icon icon="mdi-chevron-right" aria-hidden="true" />
+        </button>
       </v-card-text>
-
-      <v-card-text class="pt-0">
-        <v-row class="ga-4">
-          <v-col cols="12" sm="6">
-            <div class="gv-card-elevated pa-5 h-100 d-flex flex-column">
-              <v-icon icon="mdi-account-outline" size="32" color="primary" class="mb-2" />
-              <h3 class="gv-display text-subtitle-1 mb-2">Личный кабинет</h3>
-              <p class="text-body-2 text-medium-emphasis mb-4 flex-grow-1">
-                Бронируйте технику, следите за заказами и документами.
-              </p>
-              <v-btn
-                color="primary"
-                block
-                class="gv-cta"
-                @click="goPersonalCabinet"
-              >
-                Войти
-              </v-btn>
-              <p v-if="!isRenter && !isAdmin" class="text-caption text-medium-emphasis mt-2 mb-0">
-                Доступно после регистрации.
-              </p>
-            </div>
-          </v-col>
-          <v-col cols="12" sm="6">
-            <div class="gv-card-elevated pa-5 h-100 d-flex flex-column">
-              <v-icon icon="mdi-store-outline" size="32" color="primary" class="mb-2" />
-              <h3 class="gv-display text-subtitle-1 mb-2">Кабинет бизнеса</h3>
-              <p class="text-body-2 text-medium-emphasis mb-4 flex-grow-1">
-                Объявления, брони и выплаты как компания или ИП.
-              </p>
-              <v-btn
-                color="primary"
-                block
-                class="gv-cta"
-                @click="goBusinessCabinet"
-              >
-                Войти
-              </v-btn>
-              <p v-if="!isBusiness && !isAdmin" class="text-caption text-medium-emphasis mt-2 mb-0">
-                Нужна верификация бизнеса.
-              </p>
-            </div>
-          </v-col>
-        </v-row>
-      </v-card-text>
-
       <v-card-actions class="justify-end px-4 pb-4 pt-0">
         <v-btn variant="text" class="action-btn" @click="close">Закрыть</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
+
+<style scoped>
+.cabinet-options { display: grid; gap: 10px; }
+.cabinet-option { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 14px; align-items: center; width: 100%; padding: 16px; text-align: left; color: var(--gv-text); border: 1px solid var(--gv-border-light); border-radius: 10px; }
+.cabinet-option:hover, .cabinet-option:focus-visible { background: #f3fafb; border-color: var(--gv-sign-dark); }
+.cabinet-option > .v-icon { color: #18738a; }
+.cabinet-option strong, .cabinet-option small { display: block; }
+.cabinet-option small { margin-top: 4px; line-height: 1.45; color: var(--gv-text-secondary); }
+</style>

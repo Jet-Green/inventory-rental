@@ -8,6 +8,7 @@ import { useOwnerBookings } from "~/composables/useOwnerBookings";
 
 const { bookings, fetchOwnerBookings, isLoading } = useOwnerBookings();
 
+const search = ref("");
 const typeFilter = ref<"all" | "rental" | "agency">("all");
 
 const FILTERS: Array<{ value: "all" | "rental" | "agency"; label: string }> = [
@@ -16,8 +17,17 @@ const FILTERS: Array<{ value: "all" | "rental" | "agency"; label: string }> = [
   { value: "agency", label: "Агентский" },
 ];
 
+const loadError = ref(false);
+async function load(): Promise<void> {
+  loadError.value = false;
+  try {
+    await fetchOwnerBookings();
+  } catch {
+    loadError.value = true;
+  }
+}
 onMounted(() => {
-  void fetchOwnerBookings();
+  void load();
 });
 
 interface IDocItem {
@@ -54,46 +64,134 @@ const documents = computed<IDocItem[]>(() => {
 });
 
 const filteredDocuments = computed(() => {
-  if (typeFilter.value === "all") return documents.value;
-  return documents.value.filter((d) => d.kind === typeFilter.value);
+  return documents.value.filter(
+    (d) =>
+      (typeFilter.value === "all" || d.kind === typeFilter.value) &&
+      `${d.title} ${d.subtitle}`
+        .toLocaleLowerCase()
+        .includes((search.value || "").trim().toLocaleLowerCase()),
+  );
 });
 </script>
 
 <template>
-  <div class="px-4 px-sm-6 py-8">
-    <span class="gv-sign-eyebrow mb-3">ДОКУМЕНТЫ</span>
+  <div class="business-page px-4 px-sm-6 py-8">
     <h1 class="gv-display text-h4 mb-4">Документы</h1>
 
-    <v-chip-group v-model="typeFilter" mandatory class="mb-4">
-      <v-chip
-        v-for="opt in FILTERS"
-        :key="opt.value"
-        :value="opt.value"
-        size="small"
-        :variant="typeFilter === opt.value ? 'flat' : 'outlined'"
-        :color="typeFilter === opt.value ? 'primary' : undefined"
+    <v-alert
+      v-if="loadError"
+      type="error"
+      variant="tonal"
+      class="mb-4"
+      title="Не удалось загрузить данные"
+    >
+      <v-btn variant="text" :disabled="isLoading" @click="load"
+        >Повторить</v-btn
       >
-        {{ opt.label }}
-      </v-chip>
-    </v-chip-group>
+    </v-alert>
+    <div class="business-toolbar">
+      <v-text-field
+        v-model="search"
+        label="Найти документ по брони"
+        prepend-inner-icon="mdi-magnify"
+        hide-details
+        clearable
+        @click:clear="search = ''"
+      />
+      <v-chip-group v-model="typeFilter" mandatory class="mb-4">
+        <v-chip
+          v-for="opt in FILTERS"
+          :key="opt.value"
+          :value="opt.value"
+          size="small"
+          :variant="typeFilter === opt.value ? 'flat' : 'outlined'"
+          :color="typeFilter === opt.value ? 'primary' : undefined"
+        >
+          {{ opt.label }}
+        </v-chip>
+      </v-chip-group>
+    </div>
 
-    <v-progress-linear v-if="isLoading" indeterminate color="primary" class="mb-4" />
+    <v-progress-linear
+      v-if="isLoading"
+      indeterminate
+      color="primary"
+      class="mb-4"
+    />
 
-    <div v-if="filteredDocuments.length" class="d-flex flex-column ga-3">
-      <DocumentCard
+    <div v-if="filteredDocuments.length" class="business-panel documents-list">
+      <article
         v-for="doc in filteredDocuments"
         :key="doc.id"
-        :title="doc.title"
-        :subtitle="doc.subtitle"
-        :status="doc.status"
-        :pdf-url="doc.pdfUrl"
-      />
+        class="document-row"
+      >
+        <v-icon icon="mdi-file-document-outline" size="28" color="primary" />
+        <div>
+          <p class="font-weight-semibold mb-1">{{ doc.title }}</p>
+          <p class="business-muted mb-0">{{ doc.subtitle }}</p>
+        </div>
+        <v-chip
+          size="small"
+          variant="tonal"
+          :color="doc.pdfUrl ? 'success' : undefined"
+          >{{ doc.pdfUrl ? "PDF готов" : "PDF не сформирован" }}</v-chip
+        >
+        <div class="d-flex flex-wrap ga-2">
+          <v-btn
+            :href="doc.pdfUrl"
+            :disabled="!doc.pdfUrl"
+            target="_blank"
+            rel="noopener"
+            variant="outlined"
+            color="primary"
+            class="gv-cta"
+            size="small"
+            >Открыть PDF</v-btn
+          >
+          <v-btn
+            :href="doc.pdfUrl"
+            :disabled="!doc.pdfUrl"
+            download
+            variant="text"
+            color="primary"
+            size="small"
+            aria-label="Скачать PDF"
+            icon="mdi-download"
+          />
+        </div>
+      </article>
     </div>
 
     <EmptyState
-      v-else-if="!isLoading"
-      title="Документов пока нет"
-      description="Документы по броням ваших объявлений появятся здесь."
+      v-else-if="!isLoading && !loadError"
+      :title="documents.length ? 'Документы не найдены' : 'Документов пока нет'"
+      :description="
+        documents.length
+          ? 'Измените поиск или тип документа.'
+          : 'Документы по броням ваших объявлений появятся здесь.'
+      "
     />
   </div>
 </template>
+<style scoped>
+.document-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 20px;
+  padding-block: 20px;
+}
+.document-row + .document-row {
+  border-top: 1px solid var(--gv-border-light);
+}
+@media (max-width: 1000px) {
+  .document-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+  }
+  .document-row > :nth-child(n + 3) {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+</style>

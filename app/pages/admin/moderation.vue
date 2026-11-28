@@ -105,8 +105,7 @@ async function confirmDelete(): Promise<void> {
 </script>
 
 <template>
-  <div class="px-5 py-6">
-    <span class="gv-sign-eyebrow mb-3">МОДЕРАЦИЯ</span>
+  <div class="private-page px-5 py-6">
     <h1 class="gv-display text-h4 mb-4">Модерация объявлений</h1>
 
     <v-chip-group v-model="filter" mandatory class="mb-4">
@@ -152,7 +151,7 @@ async function confirmDelete(): Promise<void> {
                   :to="`/rental-item/${item._id}`"
                   target="_blank"
                 >
-                  Смотр.
+                  Открыть
                 </v-btn>
                 <v-btn
                   v-if="item.moderationStatus !== 'active'"
@@ -162,7 +161,7 @@ async function confirmDelete(): Promise<void> {
                   :disabled="isActing"
                   @click="onApprove(item._id)"
                 >
-                  Ок
+                  Одобрить
                 </v-btn>
                 <v-btn
                   v-if="item.moderationStatus !== 'rejected'"
@@ -173,7 +172,7 @@ async function confirmDelete(): Promise<void> {
                   :disabled="isActing"
                   @click="openReject(item._id)"
                 >
-                  Откл.
+                  Отклонить
                 </v-btn>
                 <v-btn
                   v-if="item.moderationStatus !== 'hidden'"
@@ -184,7 +183,7 @@ async function confirmDelete(): Promise<void> {
                   :disabled="isActing"
                   @click="onHide(item._id)"
                 >
-                  Скр.
+                  Скрыть
                 </v-btn>
                 <v-btn
                   size="small"
@@ -194,7 +193,7 @@ async function confirmDelete(): Promise<void> {
                   :disabled="isActing"
                   @click="openDelete(item._id)"
                 >
-                  Удал.
+                  Удалить
                 </v-btn>
               </div>
             </td>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ICatalogFilters } from "~/types/rental";
 import { useRentalCatalog } from "~/composables/useRentalCatalog";
 
 const {
@@ -6,23 +7,15 @@ const {
   items,
   filters,
   isLoading,
-  pagination,
   fetchCategories,
+  categoriesFailed,
   fetchCatalog,
-  loadMore,
 } = useRentalCatalog();
 
 const searchLocal = ref("");
-const hasFetchedOnce = ref(false);
+const draftFilters = ref<ICatalogFilters>({});
 
-onMounted(async () => {
-  await fetchCategories();
-  try {
-    await fetchCatalog({}, 1);
-  } finally {
-    hasFetchedOnce.value = true;
-  }
-});
+onMounted(() => Promise.all([fetchCategories(), fetchCatalog({}, 1)]));
 
 watch(
   () => filters.value.search,
@@ -50,7 +43,7 @@ const quickTags = computed(() => {
   return out.slice(0, 4);
 });
 
-const activeQuickKey = ref<string | null>(null);
+const activeQuickKey = computed(() => filters.value.categories?.length === 1 ? filters.value.categories[0] : null);
 const filtersDialogOpen = ref(false);
 
 const activeFiltersCount = computed(() => {
@@ -64,11 +57,10 @@ const activeFiltersCount = computed(() => {
   return n;
 });
 
-const showLoading = computed(() => isLoading.value);
-const showList = computed(() => !isLoading.value && items.value.length > 0);
-const showEmpty = computed(
-  () => !isLoading.value && hasFetchedOnce.value && items.value.length === 0,
-);
+function openFilters() {
+  draftFilters.value = { ...filters.value };
+  filtersDialogOpen.value = true;
+}
 
 async function applySearch(): Promise<void> {
   await fetchCatalog({ ...filters.value, search: searchLocal.value || undefined }, 1);
@@ -76,27 +68,23 @@ async function applySearch(): Promise<void> {
 
 async function applyFiltersFromDialog(): Promise<void> {
   filtersDialogOpen.value = false;
-  await applySearch();
+  await fetchCatalog({ ...draftFilters.value, search: searchLocal.value || undefined });
 }
 
-async function clearFiltersInDialog(): Promise<void> {
-  const search = filters.value.search;
-  filters.value = search ? { search } : {};
-  activeQuickKey.value = null;
+function clearFiltersInDialog() {
+  draftFilters.value = {};
 }
 
 async function toggleQuickCategory(key: string): Promise<void> {
   if (activeQuickKey.value === key) {
-    activeQuickKey.value = null;
     await fetchCatalog({ ...filters.value, categories: undefined }, 1);
     return;
   }
-  activeQuickKey.value = key;
+
   await fetchCatalog({ ...filters.value, categories: [key] }, 1);
 }
 
 async function resetCatalog(): Promise<void> {
-  activeQuickKey.value = null;
   filters.value = {};
   searchLocal.value = "";
   await fetchCatalog({}, 1);
@@ -111,8 +99,7 @@ useSeoMeta({
 <template>
   <div class="home-catalog">
     <section class="home-catalog__hero-band">
-      <div class="gv-page-wide px-4 px-sm-6 pt-8 pb-6">
-        <span class="gv-sign-eyebrow mb-4">Каталог аренды</span>
+      <div class="gv-page-wide px-4 px-sm-6 pt-8 pb-6 home-catalog__intro"><div>
         <h1 class="home-catalog__hero gv-display mb-3">
           Всё, что нужно, —
           <span class="gv-hand home-catalog__hero-accent">напрокат</span>
@@ -120,16 +107,18 @@ useSeoMeta({
         <p class="home-catalog__lead mb-6">
           Спортивный инвентарь, детское снаряжение, техника для ОВЗ и походы —
           от местных арендодателей, с онлайн-бронированием и договором.
-        </p>
-      </div>
+        </p><NuxtLink to="/listings" class="home-catalog__browse">Выбрать снаряжение <v-icon icon="mdi-arrow-down-right" size="20" /></NuxtLink>
+      </div><div v-if="items.some(item => item.photos?.[0])" class="home-catalog__photos" aria-hidden="true"><img v-for="item in items.filter(item => item.photos?.[0]).slice(0, 2)" :key="item._id" :src="item.photos[0]" alt="" /></div></div>
     </section>
 
     <section class="gv-page-wide px-4 px-sm-6 pb-12 pt-6">
 
-      <div class="d-flex flex-column flex-md-row ga-3 mb-6 align-stretch">
+      <div class="home-catalog__search-panel d-flex flex-column flex-md-row ga-3 mb-6 align-stretch">
         <v-text-field
           v-model="searchLocal"
-          placeholder="Поиск по названию или категории…"
+          aria-label="Поиск инвентаря"
+          prepend-inner-icon="mdi-magnify"
+          placeholder="Что хотите взять напрокат?"
           variant="outlined"
           density="comfortable"
           hide-details
@@ -158,7 +147,7 @@ useSeoMeta({
               class="gv-cta"
               height="48"
               min-width="120"
-              @click="filtersDialogOpen = true"
+              @click="openFilters"
             >
               Фильтры
             </v-btn>
@@ -172,9 +161,11 @@ useSeoMeta({
             Фильтры
           </v-card-title>
           <v-card-text class="pa-4 pt-2">
-            <RentalFilterBar
-              v-model="filters"
+            <RentalCatalogFilters
+              v-model="draftFilters"
               :categories="categories"
+              :categories-failed="categoriesFailed"
+              @retry-categories="fetchCategories"
               :loading="isLoading"
               :show-apply-button="false"
             />
@@ -207,43 +198,14 @@ useSeoMeta({
           type="button"
           class="gv-chip-tag"
           :class="{ 'gv-chip-tag--active': activeQuickKey === tag.key }"
+          :aria-pressed="activeQuickKey === tag.key"
           @click="toggleQuickCategory(tag.key)"
         >
           {{ tag.label }}
         </button>
       </div>
 
-      <v-progress-linear v-if="showLoading" indeterminate color="primary" class="mb-4" />
-
-      <div v-if="showLoading && !items.length" class="card-grid">
-        <ListingCardSkeleton v-for="i in 6" :key="i" />
-      </div>
-
-      <div v-else-if="showList" class="card-grid">
-        <RentalCard v-for="item in items" :key="item._id" :item="item" to-base="/rental-item" />
-      </div>
-
-      <EmptyState
-        v-else-if="showEmpty"
-        title="Ничего не найдено"
-        description="Попробуйте изменить фильтры или поиск."
-        action-title="Сбросить"
-        @action="resetCatalog"
-      />
-
-      <div class="d-flex justify-center mt-8">
-        <v-btn
-          v-if="pagination.page < pagination.totalPages"
-          variant="outlined"
-          color="primary"
-          class="gv-cta"
-          rounded="lg"
-          :loading="isLoading"
-          @click="loadMore"
-        >
-          Показать ещё
-        </v-btn>
-      </div>
+      <RentalCatalogResults @reset="resetCatalog" />
     </section>
   </div>
 </template>
@@ -280,4 +242,12 @@ useSeoMeta({
 .home-catalog__search :deep(.v-field) {
   border-radius: var(--gv-radius-input);
 }
+.home-catalog__intro { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: 48px; padding-bottom: 40px !important; }
+.home-catalog__photos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.home-catalog__photos img { width: 100%; height: 250px; object-fit: cover; border-radius: 100px 100px 16px 16px; }
+.home-catalog__photos img:nth-child(2) { margin-top: 34px; border-radius: 16px 16px 100px 100px; }
+.home-catalog__browse { display: inline-flex; align-items: center; gap: 12px; color: var(--gv-primary); font-weight: 700; text-decoration: none; }
+.home-catalog__search-panel { background: white; padding: 18px; border: 1px solid var(--gv-border-light); border-radius: var(--gv-radius-card); }
+@media(max-width:959px) { .home-catalog__intro { gap:24px; } .home-catalog__photos img { height:190px; } }
+@media(max-width:599px) { .home-catalog__intro { grid-template-columns:1fr; gap:22px; } .home-catalog__photos img { height:140px; border-radius:12px; } .home-catalog__photos img:nth-child(2) { margin-top:0; border-radius:12px; } .home-catalog__search-panel { padding:12px; } }
 </style>

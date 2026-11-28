@@ -8,6 +8,7 @@ export function rentalHandoffQuery(input: Record<string, unknown>): Record<strin
   return result;
 }
 export function rentalReturnPath(value: unknown): string {
+  if (value === "/business-cabinet/listings/new") return value;
   if (typeof value === "string" && /^\/federation\/authorize\?state=[a-f0-9]{64}$/.test(value)) return value;
   if (typeof value !== "string" || !/^\/rental-item\/[a-f0-9]{24}(?:\?|$)/.test(value)) return "/cabinet";
   const url = new URL(value, "https://rent.gorodaivesi.ru");

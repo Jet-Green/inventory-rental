@@ -80,8 +80,7 @@ async function confirmBlock(): Promise<void> {
 </script>
 
 <template>
-  <div class="px-5 py-6">
-    <span class="gv-sign-eyebrow mb-3">ПОЛЬЗОВАТЕЛИ</span>
+  <div class="private-page px-5 py-6">
     <h1 class="gv-display text-h4 mb-2">Пользователи</h1>
     <p class="text-body-2 text-medium-emphasis mb-4">
       Все пользователи платформы с агрегатами по объявлениям и броням.
@@ -125,7 +124,7 @@ async function confirmBlock(): Promise<void> {
             <th>Пользователь</th>
             <th>Роль</th>
             <th>Верификация</th>
-            <th class="text-center">Объявл.</th>
+            <th class="text-center">Объявления</th>
             <th class="text-center">Брони</th>
             <th>Аккаунт</th>
             <th class="text-end">Действия</th>
@@ -149,11 +148,9 @@ async function confirmBlock(): Promise<void> {
             </td>
             <td>
               <StatusChip
-                v-if="user.organizationStatus !== 'none'"
                 :status="user.organizationStatus"
                 type="verification"
               />
-              <span v-else class="text-caption text-medium-emphasis">—</span>
             </td>
             <td class="text-center">{{ user.listingsCount }}</td>
             <td class="text-center">{{ user.bookingsCount }}</td>
@@ -174,7 +171,7 @@ async function confirmBlock(): Promise<void> {
                 class="gv-cta"
                 @click="openBlock(user)"
               >
-                {{ user.isBlocked ? "Разблок." : "Заблок." }}
+                {{ user.isBlocked ? "Разблокировать" : "Заблокировать" }}
               </v-btn>
             </td>
           </tr>

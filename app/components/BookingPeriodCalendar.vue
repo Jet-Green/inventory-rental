@@ -27,7 +27,8 @@ const emit = defineEmits<{
   (e: "blocked-click", message: string): void;
   (e: "start-picked", dateIso: string): void;
 }>();
-const isPickingEnd = ref(false);
+const isPickingEnd = ref(!!props.startDate && !props.endDate);
+const instructionId = useId();
 /** Дата под курсором при выборе конца — для превью будущего диапазона. */
 const hoverIso = ref("");
 
@@ -78,7 +79,7 @@ const dayCells = computed<ICalendarDayCell[]>(() => {
   }
 
   while (cells.length % 7 !== 0 || cells.length < 35) {
-    const date = startOfMonth.add(cells.length - leading - daysInMonth + 1, "day");
+    const date = startOfMonth.add(cells.length - leading, "day");
     cells.push({
       iso: date.format("YYYY-MM-DD"),
       dayLabel: date.date(),
@@ -135,6 +136,26 @@ const isChoosingEnd = computed(
   () => isPickingEnd.value && !!props.startDate && !props.endDate,
 );
 
+const dateFormatter = new Intl.DateTimeFormat("ru-RU", { dateStyle: "long" });
+const instruction = computed(() => {
+  if (isChoosingEnd.value) {
+    const earliest = dayjs(props.startDate).add(props.minRentalDays, "day");
+    return `Теперь выберите дату возврата. Самый ранний возврат — ${dateFormatter.format(earliest.toDate())}. Дата раньше получения начнёт выбор заново.`;
+  }
+  return props.endDate
+    ? "Период выбран. Чтобы изменить его, выберите новую дату получения."
+    : `Сначала выберите дату получения, затем дату возврата. Минимальный срок — ${props.minRentalDays} дн.`;
+});
+
+function dayAccessibleLabel(dateIso: string): string {
+  const labels = [dateFormatter.format(dayjs(dateIso).toDate())];
+  if (isRangeStart(dateIso)) labels.push("получение");
+  if (isRangeEnd(dateIso)) labels.push("возврат");
+  if (isBusyDay(dateIso)) labels.push("недостаточно инвентаря");
+  else if (!canPickupOnDate(dateIso)) labels.push("получение недоступно");
+  return labels.join(", ");
+}
+
 /** Превью диапазона от старта до даты под курсором (стандартное поведение). */
 function isInHoverRange(dateIso: string): boolean {
   if (!isChoosingEnd.value || !hoverIso.value) return false;
@@ -166,7 +187,10 @@ function onDateClick(cell: ICalendarDayCell): void {
   if (!clicked.isValid()) return;
 
   if (!isPickingEnd.value || !props.startDate) {
-    if (!props.canStartDate(dateIso)) return;
+    if (!props.canStartDate(dateIso)) {
+      emit("blocked-click", "Получение в этот день недоступно. Выберите другую дату.");
+      return;
+    }
     emit("start-picked", dateIso);
     isPickingEnd.value = true;
     hoverIso.value = "";
@@ -224,36 +248,35 @@ watch(
 watch(
   () => [props.startDate, props.endDate] as const,
   ([startDate, endDate]) => {
-    if (!startDate || !!endDate) {
-      isPickingEnd.value = false;
-    }
+    isPickingEnd.value = !!startDate && !endDate;
   },
 );
 </script>
 
 <template>
-  <div class="range-calendar gv-card-elevated rounded-lg pa-4 mb-4">
+  <div class="range-calendar gv-card-elevated rounded-lg pa-4 mb-4" role="group" aria-label="Даты получения и возврата" :aria-describedby="instructionId">
+    <p :id="instructionId" class="text-body-2 mb-3" aria-live="polite">{{ instruction }}</p>
     <div class="d-flex align-center justify-space-between mb-3">
-      <v-btn icon="mdi-chevron-left" variant="text" size="small" @click="prevMonth" />
+      <v-btn icon="mdi-chevron-left" aria-label="Предыдущий месяц" variant="text" size="small" @click="prevMonth" />
       <p class="text-body-2 font-weight-semibold mb-0">{{ monthTitle }}</p>
-      <v-btn icon="mdi-chevron-right" variant="text" size="small" @click="nextMonth" />
+      <v-btn icon="mdi-chevron-right" aria-label="Следующий месяц" variant="text" size="small" @click="nextMonth" />
     </div>
 
-    <div class="d-flex flex-wrap ga-2 mb-3">
+    <div class="d-flex flex-wrap ga-2 mb-3" role="status" aria-atomic="true">
       <v-chip size="small" color="primary" variant="tonal">
-        Начало: {{ props.startDate ? dayjs(props.startDate).format("DD.MM.YYYY") : "не выбран" }}
+        Получение: {{ props.startDate ? dayjs(props.startDate).format("DD.MM.YYYY") : "не выбрано" }}
       </v-chip>
       <v-chip size="small" color="primary" variant="tonal">
         <span :class="{
           'range-calendar__pick-end-hint': isPickingEnd && props.startDate && !props.endDate,
         }">
-          Конец:
+          Возврат:
           {{
             props.endDate
               ? dayjs(props.endDate).format("DD.MM.YYYY")
               : isPickingEnd && props.startDate
                 ? "выберите..."
-                : "не выбран"
+                : "не выбрано"
           }}
         </span>
       </v-chip>
@@ -264,7 +287,7 @@ watch(
         class="range-calendar__weekday text-caption text-medium-emphasis">
         {{ weekday }}
       </div>
-      <button v-for="cell in dayCells" :key="cell.iso" type="button" class="range-calendar__day" :class="{
+      <button v-for="cell in dayCells" :key="cell.iso" :aria-label="dayAccessibleLabel(cell.iso)" :aria-pressed="isInSelectedRange(cell.iso) || isRangeStart(cell.iso)" :aria-current="cell.isToday ? 'date' : undefined" :disabled="!cell.inCurrentMonth" type="button" class="range-calendar__day" :class="{
         'range-calendar__day--outside': !cell.inCurrentMonth,
         'range-calendar__day--today': cell.isToday,
         'range-calendar__day--can-pickup': cell.inCurrentMonth && canPickupOnDate(cell.iso),
@@ -276,27 +299,27 @@ watch(
         'range-calendar__day--start': cell.inCurrentMonth && isRangeStart(cell.iso),
         'range-calendar__day--end': cell.inCurrentMonth && isRangeEnd(cell.iso),
         'range-calendar__day--suggested-end': cell.inCurrentMonth && isSuggestedEndDate(cell.iso),
-      }" @click="onDateClick(cell)" @mouseenter="onCellHover(cell)">
+      }" @click="onDateClick(cell)" @mouseenter="onCellHover(cell)" @focus="onCellHover(cell)" @blur="clearHover">
         <span>{{ cell.inCurrentMonth ? cell.dayLabel : "" }}</span>
         <span v-if="cell.inCurrentMonth && isRangeStart(cell.iso)" class="range-calendar__edge-label">
-          Начало
+          Взять
         </span>
         <span v-if="cell.inCurrentMonth && isRangeEnd(cell.iso)" class="range-calendar__edge-label">
-          Конец
+          Вернуть
         </span>
       </button>
     </div>
 
     <p v-if="isChoosingEnd" class="range-calendar__hint mb-2">
-      Выберите дату окончания аренды
+      Выберите дату возврата. Если нажать раньше минимального срока, будет выбран самый ранний допустимый возврат.
     </p>
 
     <div class="d-flex flex-wrap ga-3 text-caption text-medium-emphasis">
-      <span class="d-flex align-center ga-1"><span class="legend legend--pickup-ok" /> можно взять</span>
-      <span class="d-flex align-center ga-1"><span class="legend legend--pickup-no" /> нельзя взять</span>
-      <span class="d-flex align-center ga-1"><span class="legend legend--busy" /> превышение</span>
-      <span class="d-flex align-center ga-1"><span class="legend legend--range" /> выбранный диапазон</span>
-      <span class="d-flex align-center ga-1"><span class="legend legend--start" /> начало/конец</span>
+      <span class="d-flex align-center ga-1"><span class="legend legend--pickup-ok" /> получение доступно</span>
+      <span class="d-flex align-center ga-1"><span class="legend legend--pickup-no" /> получение недоступно</span>
+      <span class="d-flex align-center ga-1"><span class="legend legend--busy" /> недостаточно инвентаря</span>
+      <span class="d-flex align-center ga-1"><span class="legend legend--range" /> выбранный период</span>
+      <span class="d-flex align-center ga-1"><span class="legend legend--start" /> получение / возврат</span>
     </div>
   </div>
 </template>
@@ -328,6 +351,11 @@ watch(
     background-color 0.15s ease,
     border-color 0.15s ease,
     color 0.15s ease;
+}
+
+.range-calendar__day:focus-visible {
+  outline: 2px solid var(--gv-primary);
+  outline-offset: 2px;
 }
 
 .range-calendar__day:hover {
@@ -501,4 +529,5 @@ watch(
     transform: translateX(0);
   }
 }
+@media(max-width:599px) { .range-calendar__edge-label { display:none; } }
 </style>

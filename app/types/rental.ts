@@ -118,7 +118,7 @@ export interface IBookedRange {
   dateFrom: string;
   dateTo: string;
   units: number;
-  status: "pending" | "confirmed";
+  status: "pending" | "confirmed" | "active";
 }
 
 /** Организация (верификация бизнеса); в админке приходит с populate orgManagers. */

@@ -13,13 +13,13 @@ import { LEGAL_DOCS } from "~/constants/legalDocs";
         </p>
       </div>
 
-      <nav class="app-footer__col">
+      <nav class="app-footer__col" aria-label="Каталог и документы">
         <p class="app-footer__heading">Каталог</p>
-        <NuxtLink to="/" class="app-footer__link">Все объявления</NuxtLink>
+        <NuxtLink to="/rental-items" class="app-footer__link">Все объявления</NuxtLink>
         <NuxtLink to="/legal" class="app-footer__link">Документы</NuxtLink>
       </nav>
 
-      <nav class="app-footer__col">
+      <nav class="app-footer__col" aria-label="Правовая информация">
         <p class="app-footer__heading">Правовая информация</p>
         <NuxtLink
           v-for="doc in LEGAL_DOCS"
@@ -88,7 +88,10 @@ import { LEGAL_DOCS } from "~/constants/legalDocs";
   color: var(--gv-text-secondary);
   text-decoration: none;
   font-size: 13px;
-  padding: 4px 0;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 0;
   transition: color 0.15s ease;
 }
 

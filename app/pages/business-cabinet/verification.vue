@@ -11,7 +11,8 @@ import type { IDadataCompany } from "~/types/rental";
 
 const route = useRoute();
 const router = useRouter();
-const { profile, fetchProfile, submitOrganizationVerification } = useAuthProfile();
+const { profile, fetchProfile, submitOrganizationVerification } =
+  useAuthProfile();
 const { organization, fetchMine } = useMyOrganization();
 
 const entity = ref<"person" | "ip" | "ooo">("ip");
@@ -65,12 +66,32 @@ function fillFormFromOrganization(): void {
   }
 }
 
-onMounted(async () => {
-  await Promise.all([fetchProfile(), fetchMine()]);
-  fillFormFromOrganization();
+const initialLoading = ref(true);
+const loadError = ref(false);
+async function load(): Promise<void> {
+  initialLoading.value = true;
+  loadError.value = false;
+  try {
+    await Promise.all([fetchProfile(), fetchMine()]);
+    fillFormFromOrganization();
+  } catch {
+    loadError.value = true;
+  } finally {
+    initialLoading.value = false;
+  }
+}
+onMounted(() => {
+  void load();
 });
 
 async function submit(): Promise<void> {
+  if (
+    isSubmitting.value ||
+    initialLoading.value ||
+    loadError.value ||
+    !canSubmit.value
+  )
+    return;
   submitError.value = "";
   const inn = form.inn.trim();
   const ogrnOrOgrnip = form.ogrnOrOgrnip.trim();
@@ -92,9 +113,13 @@ async function submit(): Promise<void> {
       companyName,
       payoutPhone,
     });
-    toast("Заявка отправлена на проверку.", { type: "success", autoClose: 5000 });
+    toast("Заявка отправлена на проверку.", {
+      type: "success",
+      autoClose: 5000,
+    });
   } catch {
-    submitError.value = "Не удалось отправить заявку. Проверьте поля и попробуйте снова.";
+    submitError.value =
+      "Не удалось отправить заявку. Проверьте поля и попробуйте снова.";
   } finally {
     isSubmitting.value = false;
   }
@@ -102,118 +127,172 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-  <div class="px-4 px-sm-6 py-8">
-    <span class="gv-sign-eyebrow mb-3">ВЕРИФИКАЦИЯ</span>
+  <div class="business-page px-4 px-sm-6 py-8">
     <h1 class="gv-display text-h4 mb-2">Верификация бизнеса</h1>
     <p class="text-body-2 text-medium-emphasis mb-4">
       Выберите тип и заполните реквизиты для договоров и выплат.
     </p>
 
-    <div class="d-flex align-center ga-3 mb-6">
-      <span class="text-body-2">Статус:</span>
-      <StatusChip
-        v-if="organization"
-        :status="organization.moderationStatus"
-        type="verification"
-      />
-      <v-chip v-else size="small" variant="tonal">Заявка не отправлена</v-chip>
-    </div>
-
-    <p
-      v-if="organization?.moderatorComment && organization.moderationStatus === 'rejected'"
-      class="text-caption text-error mb-4"
+    <v-progress-linear
+      v-if="initialLoading"
+      indeterminate
+      color="primary"
+      class="mb-4"
+    />
+    <v-alert
+      v-if="loadError"
+      type="error"
+      variant="tonal"
+      class="mb-4"
+      title="Не удалось загрузить данные"
+      ><v-btn variant="text" @click="load">Повторить</v-btn></v-alert
     >
-      Комментарий модератора: {{ organization.moderatorComment }}
-    </p>
-
-    <template v-if="canSubmit">
-      <div class="d-flex flex-wrap ga-2 mb-6">
-        <v-btn
-          v-for="opt in [
-            { k: 'person' as const, t: 'Физлицо' },
-            { k: 'ip' as const, t: 'ИП' },
-            { k: 'ooo' as const, t: 'ООО' },
-          ]"
-          :key="opt.k"
-          :variant="entity === opt.k ? 'flat' : 'outlined'"
-          :color="entity === opt.k ? 'primary' : 'default'"
-          class="text-caption action-btn"
-          @click="entity = opt.k"
-        >
-          {{ opt.t }}
-        </v-btn>
-      </div>
-
-      <div style="max-width: 480px">
-        <DadataSuggest
-          v-if="entity !== 'person'"
-          v-model="form.inn"
-          label="ИНН (автоподтягивание по DaData)"
-          @apply="applyDadata"
-        />
-        <v-text-field
-          v-else
-          v-model="form.inn"
-          label="ИНН"
-          variant="outlined"
-          class="mb-3"
-        />
-      </div>
-      <v-text-field
-        v-if="entity !== 'person'"
-        v-model="form.ogrnOrOgrnip"
-        :label="entity === 'ip' ? 'ОГРНИП' : 'ОГРН'"
-        variant="outlined"
-        class="mb-3"
-        style="max-width: 480px"
-      />
-      <v-text-field
-        v-model="form.companyName"
-        label="Наименование / ФИО"
-        variant="outlined"
-        class="mb-3"
-        hide-details
-      />
-      <v-text-field
-        v-model="form.payoutDetails"
-        label="Реквизиты для выплат (телефон / СБП / счёт)"
-        variant="outlined"
-        class="mb-4"
-        hide-details
-      />
-
-      <p v-if="submitError" class="text-error text-caption mb-3">
-        {{ submitError }}
-      </p>
-
-      <v-btn
-        color="primary"
-        class="gv-cta"
-        :loading="isSubmitting"
-        :disabled="isSubmitting"
-        @click="submit"
-      >
-        Отправить на проверку
-      </v-btn>
-    </template>
-
     <div
-      v-else-if="organization?.moderationStatus === 'pending'"
-      class="verification-pending pa-4 d-flex align-center ga-3"
+      v-if="!initialLoading && !loadError"
+      class="business-split verification-workspace"
     >
-      <v-icon icon="mdi-clock-outline" size="24" color="warning" />
-      <span class="text-body-2">
-        Заявка на рассмотрении. После одобрения откроются разделы кабинета бизнеса.
-      </span>
+      <section class="business-panel">
+        <template v-if="canSubmit">
+          <h2 class="text-h6 mb-4">Реквизиты организации</h2>
+          <form @submit.prevent="submit">
+            <div class="d-flex flex-wrap ga-2 mb-6">
+              <v-btn
+                v-for="opt in [
+                  { k: 'person' as const, t: 'Физлицо' },
+                  { k: 'ip' as const, t: 'ИП' },
+                  { k: 'ooo' as const, t: 'ООО' },
+                ]"
+                :key="opt.k"
+                :variant="entity === opt.k ? 'flat' : 'outlined'"
+                :color="entity === opt.k ? 'primary' : 'default'"
+                class="text-caption action-btn"
+                :aria-pressed="entity === opt.k"
+                :disabled="isSubmitting"
+                @click="entity = opt.k"
+              >
+                {{ opt.t }}
+              </v-btn>
+            </div>
+
+            <div class="verification-field">
+              <CompanyTaxIdLookup
+                v-if="entity !== 'person'"
+                v-model="form.inn"
+                :label="entity === 'ip' ? 'ИНН предпринимателя' : 'ИНН организации'"
+                @apply="applyDadata"
+              />
+              <v-text-field
+                v-else
+                v-model="form.inn"
+                label="ИНН"
+                variant="outlined"
+                class="mb-3"
+              />
+            </div>
+            <v-text-field
+              v-if="entity !== 'person'"
+              v-model="form.ogrnOrOgrnip"
+              :label="entity === 'ip' ? 'ОГРНИП' : 'ОГРН'"
+              variant="outlined"
+              class="mb-3 verification-field"
+            />
+            <v-text-field
+              v-model="form.companyName"
+              label="Наименование / ФИО"
+              variant="outlined"
+              class="mb-3"
+              hide-details
+            />
+            <v-text-field
+              v-model="form.payoutDetails"
+              label="Реквизиты для выплат (телефон / СБП / счёт)"
+              variant="outlined"
+              class="mb-4"
+              hide-details
+            />
+
+            <p
+              v-if="submitError"
+              role="alert"
+              class="text-error text-caption mb-3"
+            >
+              {{ submitError }}
+            </p>
+
+            <v-btn
+              color="primary"
+              type="submit"
+              class="gv-cta"
+              :loading="isSubmitting"
+              :disabled="isSubmitting"
+            >
+              Отправить на проверку
+            </v-btn>
+          </form>
+        </template>
+
+        <div
+          v-else-if="organization?.moderationStatus === 'pending'"
+          class="verification-pending pa-4 d-flex align-center ga-3"
+        >
+          <v-icon icon="mdi-clock-outline" size="24" color="warning" />
+          <span class="text-body-2">
+            Заявка на рассмотрении. После одобрения откроются разделы кабинета
+            бизнеса.
+          </span>
+        </div>
+        <p
+          v-else-if="organization?.moderationStatus === 'approved'"
+          class="text-body-2 text-medium-emphasis"
+        >
+          Организация подтверждена.
+          <NuxtLink to="/business-cabinet" class="gv-link"
+            >Перейти в кабинет</NuxtLink
+          >
+        </p>
+      </section>
+      <aside class="business-panel">
+        <h2 class="text-h6 mb-4">Статус проверки</h2>
+        <div class="d-flex flex-wrap align-center ga-3 mb-6">
+          <span class="text-body-2">Статус:</span>
+          <StatusChip
+            v-if="organization"
+            :status="organization.moderationStatus"
+            type="verification"
+          />
+          <v-chip v-else size="small" variant="tonal"
+            >Заявка не отправлена</v-chip
+          >
+        </div>
+
+        <p
+          v-if="
+            organization?.moderatorComment &&
+            organization.moderationStatus === 'rejected'
+          "
+          class="text-caption text-error mb-4"
+        >
+          Комментарий модератора: {{ organization.moderatorComment }}
+        </p>
+
+        <p class="business-muted mb-0">
+          После одобрения откроются публикация объявлений и управление арендой.
+        </p>
+      </aside>
     </div>
-    <p v-else-if="organization?.moderationStatus === 'approved'" class="text-body-2 text-medium-emphasis">
-      Организация подтверждена.
-      <NuxtLink to="/business-cabinet" class="gv-link">Перейти в кабинет</NuxtLink>
-    </p>
   </div>
 </template>
 
 <style scoped>
+.verification-workspace {
+  grid-template-columns: minmax(0, 1.7fr) minmax(250px, 1fr);
+}
+@media (max-width: 1100px) {
+  .verification-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .verification-pending {
   background: var(--gv-primary-soft-bg);
   border: 1px solid var(--gv-primary-soft-border);

@@ -86,7 +86,7 @@ watch(menuOpen, (open) => {
         :model-value="draftTime"
         format="24hr"
         color="primary"
-        title="Выберите время"
+        :title="label"
         @update:model-value="onDraftUpdate"
       />
       <v-card-actions class="px-4 pb-3">
@@ -101,7 +101,7 @@ watch(menuOpen, (open) => {
           class="action-btn"
           @click="applyTime"
         >
-          Готово
+          Применить время
         </v-btn>
       </v-card-actions>
     </v-card>

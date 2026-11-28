@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { rentalHandoffQuery } from "~/utils/rentalHandoff";
 import type { IRentalListing } from "~/types/rental";
 
 const props = defineProps<{
@@ -6,14 +7,15 @@ const props = defineProps<{
   toBase?: string;
 }>();
 
-const router = useRouter();
+const route = useRoute();
+const { appliedFilters, categories } = useRentalCatalog();
 
 const cover = computed(() => props.item.photos?.[0] || "");
 
-const to = computed(() => `${props.toBase || "/rental-item"}/${props.item._id}`);
+const to = computed(() => ({ path: `${props.toBase || "/rental-item"}/${props.item._id}`, query: rentalHandoffQuery({ ...route.query, ...appliedFilters.value, unitsNeeded: String(appliedFilters.value.unitsNeeded || route.query.unitsNeeded || "") }) }));
 
 const categoriesLine = computed(
-  () => props.item.categories?.map((c) => c.name).join(" · ") || "Каталог",
+  () => props.item.categories?.map((c) => typeof c === "string" ? categories.value.find(category => category.key === c)?.name || c : c.name).filter(Boolean).join(" · ") || "Каталог",
 );
 
 const priceLabel = computed(() => {
@@ -21,27 +23,17 @@ const priceLabel = computed(() => {
   return new Intl.NumberFormat("ru-RU").format(p);
 });
 
-function open(): void {
-  router.push(to.value);
-}
 </script>
 
 <template>
-  <article
-    class="listing-card gv-card-elevated"
-    role="link"
-    tabindex="0"
-    :aria-label="`Аренда: ${item.title}, ${priceLabel} ₽ в день`"
-    @click="open"
-    @keydown.enter="open"
-  >
+  <NuxtLink :to="to" class="listing-card gv-card-elevated" :aria-label="`Аренда: ${item.title}, ${priceLabel} ₽ в день`">
     <div
       class="listing-card__media"
       :class="{ 'listing-card__media--empty': !cover }"
       :style="cover ? { backgroundImage: `url(${cover})` } : undefined"
       role="img"
-      :aria-label="item.title"
-    />
+      :aria-label="cover ? item.title : `${item.title}: фото отсутствует`"
+    ><span v-if="!cover" class="listing-card__placeholder"><v-icon icon="mdi-image-outline" size="36" />Нет фотографии</span></div>
     <div class="listing-card__body">
       <h3 class="listing-card__title">{{ item.title }}</h3>
       <p class="listing-card__meta">{{ categoriesLine }}</p>
@@ -59,11 +51,13 @@ function open(): void {
         </span>
       </div>
     </div>
-  </article>
+  </NuxtLink>
 </template>
 
 <style scoped>
 .listing-card {
+  color: inherit;
+  text-decoration: none;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -86,7 +80,8 @@ function open(): void {
 }
 
 .listing-card__media {
-  height: 190px;
+  aspect-ratio: 4 / 3;
+  height: auto;
   border-radius: var(--gv-radius-thumb);
   margin: 0 0 12px;
   background-color: var(--gv-border-light);
@@ -185,4 +180,5 @@ function open(): void {
   color: var(--gv-surface);
   transform: translateX(2px);
 }
+.listing-card__placeholder { display: flex; height: 100%; min-height: 180px; align-items: center; justify-content: center; flex-direction: column; gap: 10px; color: var(--gv-text-muted); font-size: 13px; }
 </style>

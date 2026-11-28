@@ -58,8 +58,7 @@ onMounted(async () => {
 })
 </script>
 <template>
-  <section class="page-container py-8 federation-page">
-    <h1 class="section-title">{{ linking ? 'Подтвердите аккаунт Аренды' : 'Вход в Аренду' }}</h1>
+  <AccountPanel :title="linking ? 'Подтвердите аккаунт Аренды' : 'Вход в Аренду'">
     <p v-if="loading" role="status" aria-live="polite">Продолжаем вход…</p>
     <p v-if="error" role="alert" class="text-error">{{ error }}</p>
     <form v-if="linking" class="federation-form" @submit.prevent="linkAccount">
@@ -70,10 +69,8 @@ onMounted(async () => {
     </form>
     <v-btn v-if="error && action === 'authorize'" @click="proceed" :disabled="loading">Повторить</v-btn>
     <NuxtLink v-if="!loading" :to="nativeLogin">Вернуться ко входу</NuxtLink>
-  </section>
+  </AccountPanel>
 </template>
 <style scoped>
-.federation-page { max-width: 560px; overflow-wrap: anywhere; }
-.federation-form { margin: 20px 0; }
-.federation-page > a { display: block; margin-top: 20px; }
+.federation-form { display: grid; gap: 12px; }
 </style>

@@ -11,7 +11,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="gv-card-elevated stat-card pa-4">
+  <div class="gv-card-elevated stat-card pa-5">
     <div class="d-flex align-start justify-space-between ga-2">
       <div>
         <p class="stat-card__value gv-display mb-1">{{ value }}</p>
@@ -24,14 +24,19 @@ defineProps<{
 </template>
 
 <style scoped>
+.stat-card {
+  height: 100%;
+  border-top: 3px solid var(--gv-primary-soft-border);
+}
 .stat-card__value {
-  font-size: 24px;
+  font-size: clamp(26px, 2.7vw, 34px);
+  overflow-wrap: anywhere;
   line-height: 1.2;
   color: var(--gv-text);
 }
 
 .stat-card__label {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--gv-text-secondary);
 }
 

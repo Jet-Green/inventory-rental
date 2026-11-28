@@ -104,8 +104,7 @@ async function confirmDelete(): Promise<void> {
 </script>
 
 <template>
-  <div class="px-5 py-6">
-    <span class="gv-sign-eyebrow mb-3">КАТЕГОРИИ</span>
+  <div class="private-page px-5 py-6">
     <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
       <h1 class="gv-display text-h4">Категории</h1>
       <v-btn color="primary" class="gv-cta" @click="openCreate">
@@ -143,13 +142,13 @@ async function confirmDelete(): Promise<void> {
             <td class="text-end">
               <div class="d-flex ga-2 justify-end flex-wrap">
                 <v-btn size="small" variant="outlined" color="primary" class="gv-cta" @click="openEdit(c)">
-                  Изм.
+                  Изменить
                 </v-btn>
                 <v-btn size="small" variant="outlined" color="primary" class="gv-cta" @click="onToggleVisibility(c)">
-                  {{ c.isVisible ? "Скр." : "Пок." }}
+                  {{ c.isVisible ? "Скрыть" : "Показать" }}
                 </v-btn>
                 <v-btn size="small" variant="outlined" color="error" class="gv-cta" @click="openDelete(c)">
-                  Удал.
+                  Удалить
                 </v-btn>
               </div>
             </td>

@@ -12,14 +12,14 @@ interface IChipMeta {
   color: ChipColor;
 }
 
-/** Карта статус → подпись/цвет по DESIGN_SPEC §2.5. */
+/** Только статусы API: confirmed также выставляется владельцем без оплаты. */
 const MAPS: Record<ChipType, Record<string, IChipMeta>> = {
   booking: {
-    pending: { label: "Ожидает оплаты", color: "warning" },
-    confirmed: { label: "Оплачено", color: "primary" },
-    active: { label: "Активно", color: "success" },
-    completed: { label: "Завершено", color: undefined },
-    cancelled: { label: "Отменено", color: "error" },
+    pending: { label: "Бронь создана", color: "warning" },
+    confirmed: { label: "Бронь подтверждена", color: "primary" },
+    active: { label: "Аренда началась", color: "success" },
+    completed: { label: "Аренда завершена", color: undefined },
+    cancelled: { label: "Бронь отменена", color: "error" },
   },
   listing: {
     draft: { label: "Черновик", color: undefined },
@@ -32,14 +32,14 @@ const MAPS: Record<ChipType, Record<string, IChipMeta>> = {
     pending: { label: "На проверке", color: "warning" },
     approved: { label: "Подтверждена", color: "success" },
     rejected: { label: "Отклонена", color: "error" },
-    none: { label: "Не отправлена", color: undefined },
+    none: { label: "Заявка не отправлена", color: undefined },
   },
 };
 
 const meta = computed<IChipMeta>(
   () =>
     MAPS[props.type]?.[props.status] || {
-      label: props.status,
+      label: "Статус неизвестен",
       color: undefined,
     },
 );

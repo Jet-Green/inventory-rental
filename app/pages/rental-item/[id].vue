@@ -4,6 +4,7 @@ import { useRentalItem } from "~/composables/useRentalItem";
 import { useRole } from "~/composables/useRole";
 
 const route = useRoute();
+const { categories } = useRentalCatalog();
 const id = String(route.params.id || "");
 
 const { currentListing, fetchListingById, isLoading } = useRentalItem();
@@ -46,7 +47,7 @@ const categoriesLine = computed(() => {
   const l = currentListing.value;
   if (!l?.categories?.length) return "";
   return l.categories
-    .map((c) => (typeof c === "string" ? c : c?.name))
+    .map((c) => (typeof c === "string" ? categories.value.find(category => category.key === c)?.name || c : c?.name))
     .filter(Boolean)
     .join(" · ");
 });
@@ -81,130 +82,59 @@ useSeoMeta({
   <div class="listing-page pb-12 pt-6">
     <v-progress-linear v-if="isLoading" indeterminate color="primary" />
     <div v-if="currentListing" class="gv-page-wide px-4 px-sm-6">
-      <v-row class="align-start">
-        <v-col cols="12" lg="8">
-          <div class="mb-5">
-            <div
-              class="listing-page__hero"
-              :class="{ 'listing-page__hero--empty': !currentListing.photos?.[selectedPhoto] }"
-            >
-              <v-img
-                v-if="currentListing.photos?.[selectedPhoto]"
-                :src="currentListing.photos[selectedPhoto]"
-                cover
-                height="420"
-                class="listing-page__hero-img"
-              />
-            </div>
-            <div v-if="(currentListing.photos?.length || 0) > 1" class="d-flex ga-2 mt-3 flex-wrap">
-              <button
-                v-for="(ph, idx) in currentListing.photos"
-                :key="idx"
-                type="button"
-                class="listing-page__thumb"
-                :class="{ 'listing-page__thumb--active': selectedPhoto === idx }"
-                @click="selectedPhoto = idx"
-              >
-                <v-img :src="ph" cover height="72" width="96" />
-              </button>
-            </div>
+      <NuxtLink to="/listings" class="listing-page__back"><v-icon icon="mdi-arrow-left" size="18" /> Каталог аренды</NuxtLink>
+      <header class="listing-page__heading"><h1 class="gv-display">{{ currentListing.title }}</h1><p>{{ categoriesLine }}</p></header>
+      <div class="listing-page__layout">
+        <div class="listing-page__content">
+          <div class="listing-page__hero">
+            <v-img v-if="currentListing.photos?.[selectedPhoto]" :src="currentListing.photos[selectedPhoto]" :alt="currentListing.title" cover class="listing-page__hero-img" />
+            <div v-else class="listing-page__no-photo"><v-icon icon="mdi-image-outline" size="48" /><span>Фото скоро появится</span></div>
+            <span v-if="currentListing.photos?.length" class="listing-page__photo-count">{{ selectedPhoto + 1 }} / {{ currentListing.photos.length }}</span>
           </div>
-        </v-col>
-
-        <v-col cols="12" lg="4">
-          <div class="gv-card-elevated pa-6 listing-page__cta">
-            <h2 class="text-h6 font-weight-semibold mb-2">Бронирование</h2>
-            <p class="text-body-2 text-medium-emphasis mb-4">
-              Оформление в несколько шагов: период, проверка, контакты и оплата.
-            </p>
-            <p class="text-primary font-weight-semibold text-h6 mb-4">
-              от
-              {{ new Intl.NumberFormat("ru-RU").format(currentListing.pricePerDay) }} ₽ / день
-            </p>
-            <v-btn
-              block
-              color="primary"
-              class="gv-cta"
-              size="large"
-              :disabled="!!bookingHint && isAuth"
-              @click="startBooking"
-            >
-              Забронировать
-            </v-btn>
-            <p
-              v-if="bookingHint"
-              class="text-caption mt-3"
-              :class="bookingHint ? 'text-error' : 'text-medium-emphasis'"
-            >
-              {{ bookingHint }}
-            </p>
+          <div v-if="(currentListing.photos?.length || 0) > 1" class="listing-page__thumbs">
+            <button v-for="(ph, idx) in currentListing.photos" :key="idx" type="button" class="listing-page__thumb" :class="{ 'listing-page__thumb--active': selectedPhoto === idx }" :aria-label="`Показать фото ${idx + 1}`" :aria-pressed="selectedPhoto === idx" @click="selectedPhoto = idx"><v-img :src="ph" alt="" cover height="64" width="88" /></button>
           </div>
-        </v-col>
-
-        <v-col cols="12">
-          <div class="gv-card-elevated pa-5 mb-6">
-            <h1 class="gv-display text-h5 mb-2">{{ currentListing.title }}</h1>
-            <p class="text-body-2 mb-3" style="color: var(--gv-text-muted)">
-              {{ categoriesLine }}
-            </p>
-            <p class="text-body-1 mb-4" style="color: var(--gv-text-secondary)">
-              {{ currentListing.description }}
-            </p>
-            <div class="d-flex flex-column ga-2">
-              <span class="text-primary font-weight-semibold">
-                Цена:
-                {{ new Intl.NumberFormat("ru-RU").format(currentListing.pricePerDay) }} ₽ / день
-              </span>
-              <span class="text-body-2" style="color: var(--gv-text-secondary)">
-                Мин. срок: {{ currentListing.minDays }} дн.
-              </span>
-              <span class="text-body-2 font-weight-medium" style="color: var(--gv-available-text)">
-                Доступно: {{ currentListing.unitsAvailable }} ед.
-              </span>
-              <span class="text-body-2" style="color: var(--gv-text-secondary)">
-                Получение: {{ pickupLabel }}
-              </span>
-            </div>
-          </div>
-
-          <RentalCalendar :ranges="currentListing.calendar" />
-        </v-col>
-      </v-row>
+          <section class="listing-page__description"><h2>Об инвентаре</h2><p>{{ currentListing.description || 'Арендодатель пока не добавил описание.' }}</p></section>
+          <section class="listing-page__calendar"><ListingAvailabilityCalendar :ranges="currentListing.calendar" /></section>
+        </div>
+        <aside class="gv-card-elevated listing-page__cta">
+          <p class="listing-page__price">{{ new Intl.NumberFormat('ru-RU').format(currentListing.pricePerDay) }} ₽ <span>/ день</span></p>
+          <p class="text-body-2 text-medium-emphasis mb-5">Выберите период на следующем шаге</p>
+          <dl class="listing-page__facts"><div><dt>Минимальный срок</dt><dd>{{ currentListing.minDays }} дн.</dd></div><div><dt>В наличии</dt><dd>{{ currentListing.unitsAvailable }} ед.</dd></div><div><dt>Получение</dt><dd>{{ pickupLabel }}</dd></div></dl>
+          <v-btn block color="primary" class="gv-cta" size="large" :disabled="!!bookingHint && isAuth" @click="startBooking">Забронировать</v-btn>
+          <p v-if="bookingHint" class="text-caption text-medium-emphasis mt-3">{{ bookingHint }}</p>
+          <div class="listing-page__next"><v-icon icon="mdi-file-document-outline" size="20" /><span>Период, проверка заказа и контакты — всё в одном оформлении.</span></div>
+        </aside>
+      </div>
     </div>
+    <div v-else-if="!isLoading" class="gv-page-wide pa-8"><EmptyState title="Объявление недоступно" description="Возможно, арендодатель снял его с публикации. Выберите другой инвентарь в каталоге." action-title="В каталог" @action="navigateTo('/listings')" /></div>
   </div>
 </template>
-
 <style scoped>
-.listing-page__hero {
-  background: var(--gv-border-light);
-  border-radius: var(--gv-radius-card);
-  overflow: hidden;
-  min-height: 200px;
-}
-
-.listing-page__hero-img {
-  border-radius: var(--gv-radius-card);
-}
-
-.listing-page__hero--empty {
-  min-height: 420px;
-}
-
-.listing-page__thumb {
-  padding: 0;
-  border: 1px solid var(--gv-border);
-  border-radius: var(--gv-radius-thumb);
-  overflow: hidden;
-  cursor: pointer;
-  background: var(--gv-border-light);
-}
-
-.listing-page__thumb--active {
-  border: 2px solid var(--gv-primary);
-}
-
-.listing-page__cta {
-  position: sticky;
-  top: 16px;
-}
+.listing-page__back { display:inline-flex; gap:8px; align-items:center; color:var(--gv-text-secondary); text-decoration:none; font-size:14px; }
+.listing-page__heading { margin:24px 0; }
+.listing-page__heading h1 { font-size:clamp(25px, 2.6vw, 38px); line-height:1.2; max-width:950px; }
+.listing-page__heading p { margin-top:12px; color:var(--gv-text-secondary); }
+.listing-page__layout { display:grid; grid-template-columns:minmax(0, 1fr) 350px; gap:32px; align-items:start; }
+.listing-page__content { min-width:0; }
+.listing-page__hero { position:relative; background:var(--gv-border-light); border-radius:var(--gv-radius-card); overflow:hidden; }
+.listing-page__hero-img { aspect-ratio: 16 / 10; }
+.listing-page__no-photo { min-height:260px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px; color:var(--gv-text-muted); }
+.listing-page__photo-count { position:absolute; right:16px; bottom:16px; background:rgba(0,0,0,.65); color:white; padding:5px 12px; border-radius:20px; font-size:13px; }
+.listing-page__thumbs { display:flex; gap:10px; overflow-x:auto; padding:12px 2px; }
+.listing-page__thumb { padding:0; border:2px solid transparent; border-radius:10px; overflow:hidden; flex-shrink:0; cursor:pointer; }
+.listing-page__thumb--active { border-color:var(--gv-primary); }
+.listing-page__cta { position:sticky; top:24px; padding:26px; }
+.listing-page__price { font-size:30px; font-weight:800; margin-bottom:6px; }
+.listing-page__price span { font-size:15px; font-weight:400; color:var(--gv-text-secondary); }
+.listing-page__facts { margin-bottom:24px; }
+.listing-page__facts div { display:flex; justify-content:space-between; align-items:start; gap:16px; padding:12px 0; border-top:1px solid var(--gv-border-light); font-size:14px; }
+.listing-page__facts dt { color:var(--gv-text-secondary); }
+.listing-page__facts dd { margin:0; text-align:right; }
+.listing-page__next { display:flex; gap:10px; margin-top:24px; padding-top:20px; border-top:1px solid var(--gv-border-light); font-size:13px; line-height:1.5; color:var(--gv-text-secondary); }
+.listing-page__description { padding:30px 0; }
+.listing-page__description h2 { font-size:23px; margin-bottom:16px; }
+.listing-page__description p { white-space:pre-line; color:var(--gv-text-secondary); line-height:1.7; }
+@media(max-width:959px) { .listing-page__layout { grid-template-columns:minmax(0,1fr); gap:24px; } .listing-page__cta { position:static; grid-row:1; } .listing-page__content { display:contents; } .listing-page__hero { grid-row:1; } .listing-page__thumbs { grid-row:2; } .listing-page__cta { grid-row:3; } .listing-page__description { padding:8px 0; } }
+@media(max-width:599px) { .listing-page__cta { padding:20px; } .listing-page__layout { gap:18px; } .listing-page__heading { margin:20px 0; } .listing-page__hero-img { aspect-ratio:4 / 3; } }
 </style>

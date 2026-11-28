@@ -13,7 +13,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   "update:modelValue": [value: string];
-  /** Пользователь нажал «Использовать» — родитель заполняет поля. */
+  /** Пользователь нажал «Заполнить реквизиты» — родитель заполняет поля. */
   apply: [company: IDadataCompany];
 }>();
 
@@ -31,7 +31,9 @@ async function onBlur(): Promise<void> {
 }
 
 function applyCompany(): void {
-  if (company.value) emit("apply", company.value);
+  if (company.value?.inn === props.modelValue?.trim() && company.value) {
+    emit("apply", company.value);
+  }
 }
 </script>
 
@@ -43,6 +45,8 @@ function applyCompany(): void {
       variant="outlined"
       :loading="isLoading"
       inputmode="numeric"
+      hint="По ИНН можно найти и заполнить реквизиты."
+      persistent-hint
       @update:model-value="onInput"
       @blur="onBlur"
     >
@@ -67,9 +71,9 @@ function applyCompany(): void {
       {{ error }}
     </v-alert>
 
-    <div v-if="company" class="dadata__result pa-4 mb-3">
+    <div v-if="company && company.inn === modelValue?.trim()" class="dadata__result pa-4 mb-3">
       <p class="font-weight-semibold mb-1">
-        Найдено: {{ company.shortName || company.name }}
+        {{ company.shortName || company.name }}
       </p>
       <p class="text-caption text-medium-emphasis mb-1">ОГРН: {{ company.ogrn }}</p>
       <p class="text-caption text-medium-emphasis mb-3">{{ company.address }}</p>
@@ -80,7 +84,7 @@ function applyCompany(): void {
         size="small"
         @click="applyCompany"
       >
-        Использовать
+        Заполнить реквизиты
       </v-btn>
     </div>
   </div>
