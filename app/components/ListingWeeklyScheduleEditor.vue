@@ -74,7 +74,7 @@ const enabledCount = computed(
 <template>
   <div class="availability-picker">
     <p class="text-body-2 text-medium-emphasis mb-4">
-      Отметьте дни и время, когда когда вам удобно сдавать в аренду, это ваш график работы.
+      Укажите дни и часы, когда можно получить инвентарь. Этот график определяет доступное время получения при бронировании.
     </p>
 
     <div class="availability-picker__chart gv-card-elevated pa-4 mb-6">
@@ -115,16 +115,16 @@ const enabledCount = computed(
               :label="wd.full" @update:model-value="updateRow(wd.day, { enabled: !!$event })" />
           </v-col>
           <v-col cols="12" sm="6" md="2" class="d-flex align-center">
-            <v-checkbox :model-value="rowForDay(wd.day).allDay" label="Весь день" color="primary" density="compact"
+            <v-checkbox :model-value="rowForDay(wd.day).allDay" label="Круглосуточно" color="primary" density="compact"
               hide-details :disabled="!rowForDay(wd.day).enabled" @update:model-value="setAllDay(wd.day, !!$event)" />
           </v-col>
           <v-col cols="6" md="2">
-            <TimeFieldRu :model-value="rowForDay(wd.day).timeFrom" label="С"
+            <TimePickerField :model-value="rowForDay(wd.day).timeFrom" :label="`Открытие · ${wd.short}`"
               :disabled="!rowForDay(wd.day).enabled || rowForDay(wd.day).allDay"
               @update:model-value="setTimeFrom(wd.day, $event)" />
           </v-col>
           <v-col cols="6" md="3">
-            <TimeFieldRu :model-value="rowForDay(wd.day).timeTo" label="До"
+            <TimePickerField :model-value="rowForDay(wd.day).timeTo" :label="`Закрытие · ${wd.short}`"
               :disabled="!rowForDay(wd.day).enabled || rowForDay(wd.day).allDay"
               @update:model-value="setTimeTo(wd.day, $event)" />
           </v-col>

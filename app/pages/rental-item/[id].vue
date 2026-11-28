@@ -95,7 +95,7 @@ useSeoMeta({
             <button v-for="(ph, idx) in currentListing.photos" :key="idx" type="button" class="listing-page__thumb" :class="{ 'listing-page__thumb--active': selectedPhoto === idx }" :aria-label="`Показать фото ${idx + 1}`" :aria-pressed="selectedPhoto === idx" @click="selectedPhoto = idx"><v-img :src="ph" alt="" cover height="64" width="88" /></button>
           </div>
           <section class="listing-page__description"><h2>Об инвентаре</h2><p>{{ currentListing.description || 'Арендодатель пока не добавил описание.' }}</p></section>
-          <section class="listing-page__calendar"><RentalCalendar :ranges="currentListing.calendar" /></section>
+          <section class="listing-page__calendar"><ListingAvailabilityCalendar :ranges="currentListing.calendar" /></section>
         </div>
         <aside class="gv-card-elevated listing-page__cta">
           <p class="listing-page__price">{{ new Intl.NumberFormat('ru-RU').format(currentListing.pricePerDay) }} ₽ <span>/ день</span></p>

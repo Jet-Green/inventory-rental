@@ -8,5 +8,5 @@ useSeoMeta({ title: "Бронирование — Аренда инвентар�
 </script>
 
 <template>
-  <BookingWizardForm v-if="listingId" :listing-id="listingId" />
+  <BookingWizard v-if="listingId" :listing-id="listingId" />
 </template>

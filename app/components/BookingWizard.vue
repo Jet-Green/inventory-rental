@@ -53,7 +53,7 @@ const steps = [
 ];
 
 const stepTitles: Record<number, string> = {
-  1: "Выберите начало и срок аренды",
+  1: "Выберите даты получения и возврата",
   2: "Проверьте параметры бронирования",
   3: "Укажите контактные данные",
   4: "Подтверждение и оплата",
@@ -206,7 +206,7 @@ function onCalendarStartPicked(dateIso: string): void {
   void nextTick(() => {
     const available = startTimeOptions.value.map((item) => item.value);
     if (!available.length) {
-      stepError.value = "Для выбранной даты нет доступного времени старта.";
+      stepError.value = "Для выбранной даты нет доступного времени получения.";
       return;
     }
     startTimeDialogValue.value = available.includes(period.startTime)
@@ -385,9 +385,9 @@ const totalPrice = computed(() => rentalSubtotal.value + deliveryFee.value);
 
 const selectionSummary = computed(() => {
   if (!period.startDate || !period.startTime || !endDateDisplay.value || !bookingDays.value) {
-    return "Укажите дату и время начала, а также срок аренды";
+    return "Выберите даты получения и возврата, время получения и количество";
   }
-  return `${formatDateRu(period.startDate, true)}, ${period.startTime} — ${endDateDisplay.value} · ${bookingDays.value} дн. · ${period.units} шт.`;
+  return `Получение: ${formatDateRu(period.startDate, true)} в ${period.startTime}; возврат: ${endDateDisplay.value} · ${bookingDays.value} дн. · ${period.units} шт.`;
 });
 
 const canStep1 = computed(
@@ -596,27 +596,27 @@ async function pay(): Promise<void> {
 
       <div v-show="step === 1" class="max-w-screen-md">
         <div class="mb-4">
-          <p class="text-body-2 font-weight-medium mb-2">1) Выберите диапазон аренды</p>
-          <BookingRangeCalendar :start-date="period.startDate" :end-date="period.endDate"
+          <p class="text-body-2 font-weight-medium mb-2">1. Даты получения и возврата</p>
+          <BookingPeriodCalendar :start-date="period.startDate" :end-date="period.endDate"
             :min-rental-days="minRentalDays" :busy-ranges="busyRanges" :can-start-date="allowedStartDate"
             :is-range-available="isRangeAvailableForUnits" :is-date-over-capacity="isDateOverCapacity"
             @update:range="applySelectedRange" @blocked-click="onBlockedCalendarClick"
             @start-picked="onCalendarStartPicked" />
           <p v-if="period.startDate && endDateDisplay" class="text-caption text-medium-emphasis mb-0">
-            Период: {{ formatDateRu(period.startDate, true) }} — {{ endDateDisplay }} ({{ bookingDays }} дн.)
+            Получение: {{ formatDateRu(period.startDate, true) }}. Возврат: {{ endDateDisplay }}. Срок: {{ bookingDays }} дн.
           </p>
         </div>
 
         <div v-if="period.startDate" class="mb-4">
-          <p class="text-body-2 font-weight-medium mb-2">2) Время начала аренды</p>
+          <p class="text-body-2 font-weight-medium mb-2">2. Время получения</p>
           <v-select v-model="period.startTime" :items="startTimeOptions" item-title="title" item-value="value"
-            label="Время начала" variant="outlined" hide-details />
+            label="Время получения" variant="outlined" hide-details />
           <p v-if="selectedStartWindow" class="text-caption text-medium-emphasis mt-2 mb-0">
-            Доступно в этот день: {{ selectedStartWindow.from }} — {{ selectedStartWindow.to }}
+            Часы получения: {{ selectedStartWindow.from }} — {{ selectedStartWindow.to }}
           </p>
         </div>
 
-        <v-text-field v-model.number="period.units" label="Количество" type="number" :min="1"
+        <v-text-field v-model.number="period.units" label="Количество единиц" type="number" :min="1"
           :max="Math.max(1, unitsAvailableForPeriod)" variant="outlined" class="mb-1" hide-details />
         <p class="text-caption text-medium-emphasis mb-4">
           Доступно на выбранный период: {{ unitsAvailableForPeriod }} ед.
@@ -628,9 +628,6 @@ async function pay(): Promise<void> {
             {{ new Intl.NumberFormat("ru-RU").format(rentalSubtotal) }} ₽
           </p>
           <p class="text-caption text-medium-emphasis mb-0">{{ selectionSummary }}</p>
-          <p v-if="startDateDisplay" class="text-caption text-medium-emphasis mt-1 mb-0">
-            Начало: {{ startDateDisplay }}<span v-if="period.startTime">, {{ period.startTime }}</span>
-          </p>
         </div>
       </div>
 
@@ -715,7 +712,14 @@ async function pay(): Promise<void> {
       </div>
 
       <p v-if="stepError" role="alert" class="text-error mt-4">{{ stepError }}</p>
-      </div><aside class="booking-wizard__summary gv-card-elevated"><v-img v-if="currentListing.photos?.[0]" :src="currentListing.photos[0]" :alt="currentListing.title" cover height="180" /><div class="pa-5"><h2 class="text-h6 mb-4">Ваш заказ</h2><p class="font-weight-semibold mb-4">{{ currentListing.title }}</p><p class="text-body-2 text-medium-emphasis mb-2">{{ selectionSummary }}</p><p v-if="startDateDisplay" class="text-body-2 mb-4">{{ startDateDisplay }} — {{ endDateDisplay }}</p><div class="booking-wizard__summary-price"><span>Предварительно</span><strong>{{ new Intl.NumberFormat('ru-RU').format(totalPrice) }} ₽</strong></div><p class="text-caption text-medium-emphasis mt-3">Проверьте период и количество перед оформлением.</p></div></aside></div>
+      </div>
+        <BookingOrderSummary
+          :title="currentListing.title"
+          :photo="currentListing.photos?.[0]"
+          :selection-summary="selectionSummary"
+          :total-price="totalPrice"
+        />
+      </div>
     </template>
 
     <p v-else-if="!isLoading" class="text-medium-emphasis">
@@ -726,14 +730,14 @@ async function pay(): Promise<void> {
     <v-dialog v-model="startTimeDialogOpen" max-width="420">
       <v-card class="gv-modal">
         <v-card-title class="text-subtitle-1 font-weight-semibold">
-          Выберите время старта аренды
+          Выберите время получения
         </v-card-title>
         <v-card-text>
           <p class="text-caption text-medium-emphasis mb-3">
-            Дата старта: {{ startDateDisplay || "—" }}
+            Дата получения: {{ startDateDisplay || "—" }}
           </p>
           <v-select v-model="startTimeDialogValue" :items="startTimeOptions" item-title="title" item-value="value"
-            label="Время старта" variant="outlined" hide-details />
+            label="Время получения" variant="outlined" hide-details />
         </v-card-text>
         <v-card-actions class="px-4 pb-4">
           <v-spacer />
@@ -787,10 +791,7 @@ async function pay(): Promise<void> {
 }
 .booking-wizard__layout { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:40px; align-items:start; }
 .booking-wizard__form { min-width:0; background:white; padding:28px; border:1px solid var(--gv-border-light); border-radius:var(--gv-radius-card); }
-.booking-wizard__summary { position:sticky; top:24px; overflow:hidden; }
-.booking-wizard__summary-price { border-top:1px solid var(--gv-border-light); padding-top:18px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:14px; }
-.booking-wizard__summary-price strong { font-size:24px; }
 .step-pill { min-height:44px; }
-@media(max-width:959px) { .booking-wizard__layout { grid-template-columns:minmax(0,1fr); gap:24px; } .booking-wizard__summary { position:static; } }
+@media(max-width:959px) { .booking-wizard__layout { grid-template-columns:minmax(0,1fr); gap:24px; } }
 @media(max-width:599px) { .booking-wizard__form { padding:16px; } .booking-wizard__thumb { width:70px; min-width:70px; height:70px; } }
 </style>
