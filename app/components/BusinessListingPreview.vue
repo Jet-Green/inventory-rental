@@ -13,7 +13,10 @@ defineProps<{
 
 <template>
   <aside class="business-panel listing-editor__summary">
-    <h2 class="text-h6 mb-4">Ваше объявление</h2>
+    <h2 class="text-h6 mb-2">Предпросмотр объявления</h2>
+    <p class="business-muted text-caption mb-4">
+      Краткая сводка введённых данных. Объявление ещё не отправлено на модерацию.
+    </p>
     <img
       v-if="listing.photos[0]"
       :src="listing.photos[0]"
@@ -50,6 +53,10 @@ defineProps<{
 </template>
 
 <style scoped>
+.listing-editor__summary {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .listing-editor__cover {
   width: 100%;
   height: 160px;

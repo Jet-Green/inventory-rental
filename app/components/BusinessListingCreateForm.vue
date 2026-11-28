@@ -21,6 +21,7 @@ const categories = ref<ICategory[]>([]);
 const isSubmitting = ref(false);
 const errorMessage = ref("");
 const step = ref(1);
+const photoError = ref("");
 const initialLoading = ref(true);
 const loadError = ref(false);
 
@@ -164,9 +165,17 @@ function prevStep(): void {
 
 /** Загружает выбранные файлы на сервер и добавляет полученные URL в форму. */
 async function onPhotosSelected(files: File[]): Promise<void> {
-  const urls = await uploadPhotos(files);
-  if (urls.length) {
-    form.photos = [...form.photos, ...urls].slice(0, 5);
+  if (isUploading.value || isSubmitting.value) return;
+  photoError.value = "";
+  try {
+    const urls = await uploadPhotos(files);
+    if (urls.length) {
+      form.photos = [...form.photos, ...urls].slice(0, 5);
+    } else {
+      photoError.value = "Фотографии не добавлены. Выберите файлы и попробуйте снова.";
+    }
+  } catch {
+    photoError.value = "Не удалось загрузить фотографии. Уже добавленные фото сохранены в форме. Выберите файлы ещё раз.";
   }
 }
 
@@ -261,8 +270,10 @@ const availabilityPreview = computed(() =>
             :max="5"
             @files="onPhotosSelected"
           />
+          <p v-if="photoError" role="alert" class="text-error mt-3">{{ photoError }}</p>
           <p class="text-caption text-medium-emphasis mt-3 mb-0">
             До 5 фотографий. Первое фото станет обложкой объявления.
+            Чтобы заменить обложку, удалите первое фото: обложкой станет следующее.
           </p>
         </div>
 

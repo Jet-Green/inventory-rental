@@ -16,7 +16,11 @@ const emit = defineEmits<{
 }>();
 
 const inputRef = ref<HTMLInputElement | null>(null);
+const dropzoneRef = ref<HTMLElement | null>(null);
 const isDragOver = ref(false);
+const selectionMessage = ref("");
+const hintId = useId();
+const messageId = useId();
 
 const remaining = computed(() => Math.max(0, props.max - props.modelValue.length));
 const isFull = computed(() => remaining.value <= 0);
@@ -28,9 +32,13 @@ function openPicker(): void {
 
 function emitFiles(fileList: FileList | null): void {
   if (!fileList || !fileList.length) return;
-  const files = Array.from(fileList).slice(0, remaining.value);
-  if (!files.length) return;
-  emit("files", files);
+  if (props.uploading || isFull.value) return;
+  const selected = Array.from(fileList);
+  selectionMessage.value = selected.length > remaining.value
+    ? `Можно добавить ещё ${remaining.value} фото. Остальные файлы не добавлены.`
+    : "";
+  const files = selected.slice(0, remaining.value);
+  if (files.length) emit("files", files);
 }
 
 function onInputChange(event: Event): void {
@@ -52,21 +60,27 @@ function onDragOver(): void {
 }
 
 function removeAt(index: number): void {
+  if (props.uploading) return;
+  selectionMessage.value = `Фото ${index + 1} удалено из объявления.`;
   const next = props.modelValue.slice();
   next.splice(index, 1);
   emit("update:modelValue", next);
+  void nextTick(() => dropzoneRef.value?.focus());
 }
 </script>
 
 <template>
   <div>
     <div
+      ref="dropzoneRef"
       class="dropzone"
       :class="{ 'dropzone--over': isDragOver, 'dropzone--disabled': isFull || uploading }"
       role="button"
       tabindex="0"
       :aria-disabled="isFull || uploading"
-      aria-label="Загрузить фото"
+      aria-label="Выбрать фотографии"
+      :aria-describedby="`${hintId} ${messageId}`"
+      :aria-busy="uploading"
       @click="openPicker"
       @keydown.enter.prevent="openPicker"
       @keydown.space.prevent="openPicker"
@@ -80,22 +94,31 @@ function removeAt(index: number): void {
         color="primary"
         size="28"
       />
+      <p v-if="uploading" class="dropzone__title mt-2 mb-1" role="status">
+        Загружаем фотографии… Дождитесь завершения.
+      </p>
       <template v-else>
         <v-icon icon="mdi-cloud-upload-outline" size="32" color="primary" />
         <p class="dropzone__title mt-2 mb-1">
-          {{ isFull ? "Достигнут лимит фото" : "Перетащите фото или нажмите" }}
+          {{ isFull ? "Достигнут лимит фото" : "Выберите фото или перетащите сюда" }}
         </p>
-        <p class="dropzone__hint mb-0">JPG, PNG, WEBP до 8 МБ · {{ modelValue.length }}/{{ max }}</p>
       </template>
+      <p :id="hintId" class="dropzone__hint mb-0">
+        JPG, PNG, WEBP, GIF · до 8 МБ на файл<br />
+        Загружено {{ modelValue.length }} из {{ max }}
+      </p>
       <input
         ref="inputRef"
         type="file"
         accept="image/jpeg,image/png,image/webp,image/gif"
         multiple
         class="d-none"
+        @click.stop
         @change="onInputChange"
       />
     </div>
+
+    <p :id="messageId" role="status" class="dropzone__hint mt-2 mb-0">{{ selectionMessage }}</p>
 
     <div v-if="modelValue.length" class="dropzone__grid mt-3">
       <div v-for="(url, index) in modelValue" :key="url + index" class="dropzone__thumb">
@@ -103,11 +126,13 @@ function removeAt(index: number): void {
         <button
           type="button"
           class="dropzone__remove"
-          aria-label="Удалить фото"
+          :aria-label="`Удалить фото ${index + 1}${index === 0 ? ' (обложка)' : ''}`"
+          :disabled="uploading"
           @click.stop="removeAt(index)"
         >
           <v-icon icon="mdi-close" size="16" />
         </button>
+        <span v-if="index === 0" class="dropzone__cover">Обложка</span>
       </div>
     </div>
   </div>
@@ -148,7 +173,7 @@ function removeAt(index: number): void {
 
 .dropzone__grid {
   display: grid;
-  grid-template-columns: repeat(4, 80px);
+  grid-template-columns: repeat(auto-fit, 80px);
   gap: 8px;
 }
 
@@ -172,8 +197,8 @@ function removeAt(index: number): void {
   position: absolute;
   top: 2px;
   right: 2px;
-  width: 22px;
-  height: 22px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
   background: rgba(32, 28, 23, 0.6);
   color: var(--gv-surface);
@@ -182,5 +207,23 @@ function removeAt(index: number): void {
   justify-content: center;
   cursor: pointer;
   border: none;
+}
+.dropzone:focus-visible,
+.dropzone__remove:focus-visible {
+  outline: 3px solid var(--gv-primary);
+  outline-offset: 3px;
+}
+.dropzone__remove:disabled {
+  cursor: wait;
+}
+.dropzone__cover {
+  position: absolute;
+  bottom: 0;
+  inset-inline: 0;
+  padding: 2px;
+  background: rgba(32, 28, 23, 0.75);
+  color: white;
+  font-size: 11px;
+  text-align: center;
 }
 </style>
