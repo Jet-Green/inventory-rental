@@ -1,26 +1,14 @@
 <script setup lang="ts">
-type DocStatus = "signed" | "on-sign" | "waiting";
-
 const props = defineProps<{
   title: string;
-  /** Подзаголовок: «Бронь #… · Дата». */
+  /** Подзаголовок: «Бронь #… · Дата получения». */
   subtitle?: string;
-  status?: DocStatus;
-  /** Ссылка на PDF; при отсутствии — действия задизейблены. */
   pdfUrl?: string;
 }>();
 
-const STATUS_META: Record<DocStatus, { label: string; color: string }> = {
-  signed: { label: "Подписан", color: "success" },
-  "on-sign": { label: "На подписи", color: "warning" },
-  waiting: { label: "Ожидает", color: "grey" },
-};
-
-const statusMeta = computed(() =>
-  props.status ? STATUS_META[props.status] : null,
-);
-
-const hasUrl = computed(() => !!props.pdfUrl);
+// URL документа не свидетельствует о подписании договора.
+const hasUrl = computed(() => !!props.pdfUrl?.trim());
+const documentName = computed(() => [props.title, props.subtitle].filter(Boolean).join(" · "));
 </script>
 
 <template>
@@ -30,20 +18,23 @@ const hasUrl = computed(() => !!props.pdfUrl);
       {{ subtitle }}
     </p>
     <v-chip
-      v-if="statusMeta"
       size="small"
       variant="tonal"
-      :color="statusMeta.color"
+      :color="hasUrl ? 'success' : undefined"
       class="mb-3 document-card__status"
     >
-      {{ statusMeta.label }}
+      {{ hasUrl ? 'PDF доступен' : 'PDF пока недоступен' }}
     </v-chip>
+    <p v-if="!hasUrl" class="text-caption text-medium-emphasis mb-3 document-card__notice">
+      Ссылка на документ пока отсутствует. Обновите список позже.
+    </p>
     <div class="d-flex ga-2 flex-wrap">
       <v-btn
         :href="hasUrl ? pdfUrl : undefined"
         :tag="hasUrl ? 'a' : 'button'"
         target="_blank"
-        rel="noopener"
+        rel="noopener noreferrer"
+        :aria-label="`Открыть PDF: ${documentName} (в новой вкладке)`"
         variant="outlined"
         color="primary"
         class="gv-cta"
@@ -51,19 +42,7 @@ const hasUrl = computed(() => !!props.pdfUrl);
         :disabled="!hasUrl"
         prepend-icon="mdi-file-pdf-box"
       >
-        Открыть PDF
-      </v-btn>
-      <v-btn
-        :href="hasUrl ? pdfUrl : undefined"
-        :tag="hasUrl ? 'a' : 'button'"
-        download
-        color="primary"
-        class="gv-cta"
-        size="small"
-        :disabled="!hasUrl"
-        prepend-icon="mdi-download"
-      >
-        Скачать
+        Открыть PDF ↗
       </v-btn>
     </div>
   </div>

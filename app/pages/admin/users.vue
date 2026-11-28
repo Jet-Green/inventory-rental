@@ -148,11 +148,9 @@ async function confirmBlock(): Promise<void> {
             </td>
             <td>
               <StatusChip
-                v-if="user.organizationStatus !== 'none'"
                 :status="user.organizationStatus"
                 type="verification"
               />
-              <span v-else class="text-caption text-medium-emphasis">—</span>
             </td>
             <td class="text-center">{{ user.listingsCount }}</td>
             <td class="text-center">{{ user.bookingsCount }}</td>

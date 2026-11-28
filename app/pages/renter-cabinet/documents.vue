@@ -12,12 +12,13 @@ const typeFilter = ref<"all" | "rental" | "agency">("all");
 
 const FILTERS: Array<{ value: "all" | "rental" | "agency"; label: string }> = [
   { value: "all", label: "Все" },
-  { value: "rental", label: "Договор" },
-  { value: "agency", label: "Агентский" },
+  { value: "rental", label: "Договор аренды" },
+  { value: "agency", label: "Агентский договор" },
 ];
 
 const loadError = ref(false);
 async function loadBookings() {
+  if (isLoading.value) return;
   loadError.value = false;
   try { await fetchMyBookings(); }
   catch { loadError.value = true; }
@@ -28,7 +29,6 @@ interface IDocItem {
   id: string;
   title: string;
   subtitle: string;
-  status: "signed" | "on-sign" | "waiting";
   pdfUrl?: string;
   kind: "rental" | "agency";
 }
@@ -37,12 +37,11 @@ interface IDocItem {
 const documents = computed<IDocItem[]>(() => {
   const out: IDocItem[] = [];
   for (const b of bookings.value) {
-    const ref = `Бронь #${b._id.slice(-8)} · ${dayjs(b.dateFrom).format("DD.MM.YYYY")}`;
+    const ref = `Бронь #${b._id.slice(-8)} · Получение ${dayjs(b.dateFrom).format("DD.MM.YYYY")}`;
     out.push({
       id: `${b._id}-rental`,
       title: "Договор аренды",
       subtitle: ref,
-      status: b.rentalAgreementPdfUrl ? "signed" : "waiting",
       pdfUrl: b.rentalAgreementPdfUrl || undefined,
       kind: "rental",
     });
@@ -50,7 +49,6 @@ const documents = computed<IDocItem[]>(() => {
       id: `${b._id}-agency`,
       title: "Агентский договор",
       subtitle: ref,
-      status: b.agencyAgreementPdfUrl ? "signed" : "on-sign",
       pdfUrl: b.agencyAgreementPdfUrl || undefined,
       kind: "agency",
     });
@@ -70,7 +68,10 @@ const filteredDocuments = computed(() => {
       <h1 class="gv-display text-h4">Документы</h1><v-icon icon="mdi-file-document-multiple-outline" size="28" color="primary" />
     </div>
 
-    <v-chip-group v-model="typeFilter" mandatory class="mb-4">
+    <p class="text-body-2 text-medium-emphasis mb-4">Здесь доступны PDF договоров. Наличие PDF не подтверждает подписание.</p>
+    <v-btn variant="outlined" size="small" prepend-icon="mdi-refresh" :loading="isLoading" class="mb-4" @click="loadBookings">Обновить документы</v-btn>
+
+    <v-chip-group aria-label="Тип договора" v-model="typeFilter" mandatory class="document-filters mb-4">
       <v-chip
         v-for="opt in FILTERS"
         :key="opt.value"
@@ -96,7 +97,6 @@ const filteredDocuments = computed(() => {
         :key="doc.id"
         :title="doc.title"
         :subtitle="doc.subtitle"
-        :status="doc.status"
         :pdf-url="doc.pdfUrl"
       />
     </div>
@@ -110,11 +110,13 @@ const filteredDocuments = computed(() => {
 </template>
 
 <style scoped>
+.document-filters :deep(.v-slide-group__content) { flex-wrap: wrap; flex: 1 1 auto; min-width: 0; }
 .document-list { max-width: 960px; }
 .document-list :deep(.gv-card-elevated) { display: grid; grid-template-columns: 1fr auto; column-gap: 24px; align-items: start; }
 .document-list :deep(.document-card__title) { font-size: 16px; }
 .document-list :deep(.document-card__status) { grid-column: 2; grid-row: 1; justify-self: end; }
 .document-list :deep(.gv-card-elevated > .text-caption) { grid-column: 1; }
+.document-list :deep(.document-card__notice) { grid-column: 1 / -1; }
 .document-list :deep(.gv-card-elevated > .d-flex) { grid-column: 1 / -1; margin-top: 12px; padding-top: 16px; border-top: 1px solid var(--gv-border-light); }
 @media (max-width: 600px) {
  .document-list :deep(.gv-card-elevated) { grid-template-columns: 1fr; }

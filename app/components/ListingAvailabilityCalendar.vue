@@ -58,14 +58,6 @@ function formatBookedRange(range: IBookedRange): string {
   const toLabel = to.isValid() ? to.format("DD.MM.YYYY HH:mm") : range.dateTo;
   return `${fromLabel} — ${toLabel}`;
 }
-
-function bookingStatusLabel(status: IBookedRange["status"]): string {
-  return status === "confirmed" ? "Подтверждено" : "Ожидает подтверждения";
-}
-
-function bookingStatusColor(status: IBookedRange["status"]): string {
-  return status === "confirmed" ? "error" : "warning";
-}
 </script>
 
 <template>
@@ -133,9 +125,7 @@ function bookingStatusColor(status: IBookedRange["status"]): string {
           <tr v-for="range in busyRangesSorted" :key="range.bookingId">
             <td>{{ formatBookedRange(range) }}</td>
             <td>
-              <v-chip :color="bookingStatusColor(range.status)" size="small" label>
-                {{ bookingStatusLabel(range.status) }}
-              </v-chip>
+              <StatusChip :status="range.status" type="booking" />
             </td>
             <td>{{ range.units }}</td>
           </tr>

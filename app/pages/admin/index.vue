@@ -20,11 +20,11 @@ const {
 } = useAdminDashboard();
 
 const BOOKING_STATUS_LABEL: Record<BookingStatus, string> = {
-  pending: "ожидает оплаты",
-  confirmed: "оплачено",
-  active: "активно",
-  completed: "завершено",
-  cancelled: "отменено",
+  pending: "бронь создана",
+  confirmed: "бронь подтверждена",
+  active: "аренда началась",
+  completed: "аренда завершена",
+  cancelled: "бронь отменена",
 };
 
 onMounted(() => {
