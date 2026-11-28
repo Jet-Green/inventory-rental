@@ -99,7 +99,7 @@ function renterLine(b: IBookingItem): string {
 
     <v-row class="mb-2 payout-summary">
       <v-col cols="12" md="4">
-        <StatCard
+        <DashboardMetricCard
           label="Доступно к выплате"
           :value="money(available)"
           delta="по завершённым арендам"
@@ -107,7 +107,7 @@ function renterLine(b: IBookingItem): string {
         />
       </v-col>
       <v-col cols="12" md="4">
-        <StatCard
+        <DashboardMetricCard
           label="В обработке"
           :value="money(inProgress)"
           delta="оплачено, аренда идёт или впереди"
@@ -115,7 +115,7 @@ function renterLine(b: IBookingItem): string {
         />
       </v-col>
       <v-col cols="12" md="4">
-        <StatCard
+        <DashboardMetricCard
           label="Всего заработано"
           :value="money(earnedTotal)"
           delta="за всё время"

@@ -175,10 +175,10 @@ async function submit(): Promise<void> {
             </div>
 
             <div class="verification-field">
-              <DadataSuggest
+              <CompanyTaxIdLookup
                 v-if="entity !== 'person'"
                 v-model="form.inn"
-                label="ИНН (автоподтягивание по DaData)"
+                :label="entity === 'ip' ? 'ИНН предпринимателя' : 'ИНН организации'"
                 @apply="applyDadata"
               />
               <v-text-field

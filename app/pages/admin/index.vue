@@ -51,7 +51,7 @@ function managersLine(managers: unknown): string {
 
     <v-row class="mb-4">
       <v-col cols="12" md="4">
-        <StatCard
+        <DashboardMetricCard
           label="Объявлений на модерации"
           :value="dashboard.listingsStats?.pending ?? 0"
           icon="mdi-eye-check-outline"
@@ -59,7 +59,7 @@ function managersLine(managers: unknown): string {
         />
       </v-col>
       <v-col cols="12" md="4">
-        <StatCard
+        <DashboardMetricCard
           label="Всего пользователей"
           :value="dashboard.usersCount ?? 0"
           icon="mdi-account-plus"
@@ -67,7 +67,7 @@ function managersLine(managers: unknown): string {
         />
       </v-col>
       <v-col cols="12" md="4">
-        <StatCard
+        <DashboardMetricCard
           label="Опубликованных объявлений"
           :value="dashboard.listingsStats?.active ?? 0"
           icon="mdi-calendar-check"

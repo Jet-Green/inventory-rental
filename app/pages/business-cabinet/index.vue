@@ -93,21 +93,21 @@ function dateLabel(value: string): string {
 
     <v-row>
       <v-col cols="12" md="4">
-        <StatCard
+        <DashboardMetricCard
           label="Активные брони"
           :value="activeBookingsCount"
           icon="mdi-calendar-check"
         />
       </v-col>
       <v-col cols="12" md="4">
-        <StatCard
+        <DashboardMetricCard
           label="Выручка по сделкам"
           :value="revenueLabel"
           icon="mdi-cash-multiple"
         />
       </v-col>
       <v-col cols="12" md="4">
-        <StatCard
+        <DashboardMetricCard
           label="Опубликованных объявлений"
           :value="publishedCount"
           icon="mdi-clipboard-list-outline"
