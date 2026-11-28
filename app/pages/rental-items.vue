@@ -29,7 +29,7 @@ async function resetListings(): Promise<void> { filters.value = {}; await applyF
   <NuxtPage v-if="route.params.id" />
   <section v-else class="gv-page-wide px-4 px-sm-6 py-8">
     <header class="catalog-heading"><div><h1 class="section-title mb-2">Каталог аренды</h1><p>Снаряжение на день, выходные или целое путешествие.</p></div><span aria-live="polite">{{ pagination.total }} объявлений</span></header>
-    <div class="catalog-filters"><RentalFilterBar
+    <div class="catalog-filters"><RentalCatalogFilters
       v-model="filters"
       :categories="categories"
       :loading="isLoading"
@@ -42,7 +42,7 @@ async function resetListings(): Promise<void> { filters.value = {}; await applyF
     </div>
 
     <div v-else-if="items.length" class="card-grid">
-      <RentalCard v-for="item in items" :key="item._id" :item="item" />
+      <RentalListingCard v-for="item in items" :key="item._id" :item="item" />
     </div>
 
     <EmptyState

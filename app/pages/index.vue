@@ -173,7 +173,7 @@ useSeoMeta({
             Фильтры
           </v-card-title>
           <v-card-text class="pa-4 pt-2">
-            <RentalFilterBar
+            <RentalCatalogFilters
               v-model="filters"
               :categories="categories"
               :loading="isLoading"
@@ -222,7 +222,7 @@ useSeoMeta({
       </div>
 
       <div v-else-if="showList" class="card-grid">
-        <RentalCard v-for="item in items" :key="item._id" :item="item" to-base="/rental-item" />
+        <RentalListingCard v-for="item in items" :key="item._id" :item="item" to-base="/rental-item" />
       </div>
 
       <EmptyState

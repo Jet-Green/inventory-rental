@@ -38,7 +38,7 @@ useSeoMeta({
   <NuxtPage v-if="route.params.id" />
   <section v-else class="gv-page-wide px-4 px-sm-6 py-8">
     <header class="catalog-heading"><div><h1 class="section-title mb-2">Найдите своё снаряжение</h1><p>Выберите даты и инвентарь для ваших планов.</p></div><span aria-live="polite">{{ pagination.total }} объявлений</span></header>
-    <div class="catalog-filters"><RentalFilterBar
+    <div class="catalog-filters"><RentalCatalogFilters
       v-model="filters"
       :categories="categories"
       :loading="isLoading"
@@ -51,7 +51,7 @@ useSeoMeta({
     </div>
 
     <div v-else-if="items.length" class="card-grid">
-      <RentalCard v-for="item in items" :key="item._id" :item="item" to-base="/listings" />
+      <RentalListingCard v-for="item in items" :key="item._id" :item="item" to-base="/listings" />
     </div>
 
     <EmptyState
